@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<ruleset name="WB Community Calendar Pro">
+	<description>WordPress Coding Standards for WB Community Calendar Pro.</description>
+
+	<rule ref="WordPress" />
+	<rule ref="WordPress-Docs" />
+	<rule ref="WordPress-Extra" />
+	<rule ref="WordPressVIPMinimum" />
+
+	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/node_modules/*</exclude-pattern>
+	<exclude-pattern>*/assets/*</exclude-pattern>
+</ruleset>

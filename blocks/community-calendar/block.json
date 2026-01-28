@@ -1,0 +1,28 @@
+{
+  "apiVersion": 3,
+  "name": "wbccp/community-calendar",
+  "title": "Community Calendar",
+  "category": "widgets",
+  "icon": "calendar",
+  "description": "Display the WB Community Calendar.",
+  "textdomain": "wb-community-calendar-pro",
+  "attributes": {
+    "groupId": {
+      "type": "number",
+      "default": 0
+    },
+    "limit": {
+      "type": "number",
+      "default": 10
+    },
+    "view": {
+      "type": "string",
+      "default": "list"
+    }
+  },
+  "supports": {
+    "html": false
+  },
+  "editorScript": "wbccp-calendar-block-editor",
+  "editorStyle": "wbccp-calendar-block-editor"
+}

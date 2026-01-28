@@ -1,0 +1,218 @@
+body.wbccp-event-editor {
+	--wbccp-admin-bg: #f4f6fb;
+	--wbccp-card-bg: #ffffff;
+	--wbccp-border: #dde3ee;
+	--wbccp-accent: #0f766e;
+	--wbccp-accent-dark: #0a4d46;
+	--wbccp-text: #0f172a;
+}
+
+body.wbccp-event-editor #wpcontent {
+	background: var(--wbccp-admin-bg);
+}
+
+.wbccp-event-editor .notice {
+	border-radius: 10px;
+	margin: 10px 0 16px;
+	box-shadow: none;
+}
+
+.wbccp-event-editor .notice p {
+	margin: 6px 0;
+}
+
+.wbccp-admin-wrap {
+	max-width: 980px;
+}
+
+.wbccp-event-header {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 18px 20px;
+	margin: 16px 0 18px;
+	border-radius: 14px;
+	border: 1px solid #d2e1f3;
+	background: linear-gradient(120deg, #e8f3ff 0%, #f8fafc 55%, #f1f7f5 100%);
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.wbccp-event-header__icon {
+	width: 48px;
+	height: 48px;
+	border-radius: 12px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--wbccp-accent);
+	color: #fff;
+	box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.wbccp-event-header__icon .dashicons {
+	font-size: 26px;
+	width: 26px;
+	height: 26px;
+}
+
+.wbccp-event-header__content h1 {
+	margin: 0;
+	font-size: 22px;
+	color: var(--wbccp-text);
+}
+
+.wbccp-event-header__content p {
+	margin: 4px 0 0;
+	color: #475569;
+}
+
+.wbccp-admin-card {
+	background: var(--wbccp-card-bg);
+	border: 1px solid var(--wbccp-border);
+	border-radius: 12px;
+	padding: 18px 20px;
+	margin-bottom: 18px;
+	box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+}
+
+.wbccp-admin-card h2 {
+	margin-top: 0;
+}
+
+.wbccp-admin-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+}
+
+@media (max-width: 900px) {
+	.wbccp-admin-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+.wbccp-admin-field label {
+	font-weight: 600;
+	display: inline-block;
+	margin-bottom: 6px;
+}
+
+.wbccp-admin-field input[type="text"],
+.wbccp-admin-field input[type="url"],
+.wbccp-admin-field input[type="datetime-local"],
+.wbccp-admin-field input[type="date"],
+.wbccp-admin-field textarea {
+	width: 100%;
+	max-width: 100%;
+}
+
+#submitdiv,
+#misc-publishing-actions,
+#minor-publishing-actions {
+	display: none;
+}
+
+body.wbccp-event-editor .postbox-header .handle-order-higher,
+body.wbccp-event-editor .postbox-header .handle-order-lower {
+	display: none !important;
+}
+
+body.wbccp-event-editor .postbox-header .handlediv {
+	display: none !important;
+}
+
+body.wbccp-event-editor .postbox-header .screen-reader-text {
+	display: none !important;
+}
+
+body.wbccp-event-editor .screen-reader-text {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	border: 0;
+}
+
+body.wbccp-event-editor .hidden {
+	display: none !important;
+}
+
+.wbccp-publish-box {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.wbccp-admin-field select,
+.wbccp-admin-field input[type="number"] {
+	width: 100%;
+	max-width: 100%;
+}
+
+.wbccp-admin-field input#wbccp-group-filter {
+	margin-bottom: 8px;
+}
+
+#postdivrich {
+	display: none;
+}
+
+body.wbccp-event-editor #post-body-content .postbox {
+	margin-bottom: 18px;
+	border: 1px solid var(--wbccp-border);
+	border-radius: 12px;
+	overflow: hidden;
+	background: var(--wbccp-card-bg);
+	box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+}
+
+body.wbccp-event-editor .postbox-header {
+	padding: 12px 16px;
+	background: #f8fafc;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body.wbccp-event-editor .postbox-header h2 {
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--wbccp-text);
+}
+
+body.wbccp-event-editor #titlediv #title {
+	font-size: 26px;
+	padding: 12px 14px;
+	border-radius: 10px;
+	border: 1px solid var(--wbccp-border);
+	box-shadow: none;
+}
+
+.wbccp-admin-note {
+	color: #666;
+	font-size: 0.9em;
+}
+
+.wbccp-recurrence-fields {
+	margin-top: 12px;
+	padding: 12px;
+	border: 1px dashed #d5d5d5;
+	border-radius: 6px;
+	background: #fbfbfb;
+}
+
+.wbccp-recur-details {
+	margin-top: 10px;
+	transition: opacity 0.2s ease;
+}
+
+body.wbccp-event-editor .wbccp-editor .wp-editor-container {
+	border-radius: 10px;
+	border: 1px solid var(--wbccp-border);
+	overflow: hidden;
+}
+
+body.wbccp-event-editor .wbccp-editor .wp-editor-area {
+	min-height: 220px;
+}
