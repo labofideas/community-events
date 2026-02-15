@@ -365,7 +365,8 @@ class WBCCP_Settings {
 	public static function render_page() {
 		$demo = get_option( 'wbccp_demo_data', array() );
 		$has_demo = ! empty( $demo['events'] ) || ! empty( $demo['groups'] ) || ! empty( $demo['pages'] ) || ! empty( $demo['attachments'] ) || ! empty( $demo['users'] ) || ! empty( $demo['menu_items'] );
-		$status = isset( $_GET['wbccp_demo'] ) ? sanitize_text_field( wp_unslash( $_GET['wbccp_demo'] ) ) : '';
+		$status = filter_input( INPUT_GET, 'wbccp_demo', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$status = $status ? sanitize_key( $status ) : '';
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'WB Community Calendar Settings', 'wb-community-calendar-pro' ); ?></h1>
@@ -421,7 +422,8 @@ class WBCCP_Settings {
 			wp_die( esc_html__( 'Unauthorized.', 'wb-community-calendar-pro' ) );
 		}
 
-		if ( empty( $_POST['wbccp_demo_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_demo_nonce'] ), 'wbccp_generate_demo' ) ) {
+		$nonce = isset( $_POST['wbccp_demo_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_demo_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_generate_demo' ) ) {
 			wp_die( esc_html__( 'Security check failed.', 'wb-community-calendar-pro' ) );
 		}
 
@@ -709,9 +711,17 @@ class WBCCP_Settings {
 		}
 
 		$page_id = 0;
-		$existing_page = get_page_by_title( __( 'Sitewide Events', 'wb-community-calendar-pro' ) );
-		if ( $existing_page && ! empty( $existing_page->ID ) ) {
-			$page_id = (int) $existing_page->ID;
+		$existing_page_query = new WP_Query(
+			array(
+				'post_type'      => 'page',
+				'post_status'    => 'any',
+				'title'          => __( 'Sitewide Events', 'wb-community-calendar-pro' ),
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			)
+		);
+		if ( ! empty( $existing_page_query->posts[0] ) ) {
+			$page_id = (int) $existing_page_query->posts[0];
 		} else {
 			$page_id = wp_insert_post(
 				array(
@@ -766,7 +776,8 @@ class WBCCP_Settings {
 			wp_die( esc_html__( 'Unauthorized.', 'wb-community-calendar-pro' ) );
 		}
 
-		if ( empty( $_POST['wbccp_demo_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_demo_nonce'] ), 'wbccp_delete_demo' ) ) {
+		$nonce = isset( $_POST['wbccp_demo_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_demo_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_delete_demo' ) ) {
 			wp_die( esc_html__( 'Security check failed.', 'wb-community-calendar-pro' ) );
 		}
 
@@ -843,16 +854,20 @@ class WBCCP_Settings {
 			return;
 		}
 
-		if ( empty( $_GET['wbccp_demo_action'] ) || empty( $_GET['wbccp_demo_nonce'] ) ) {
+		$demo_action = filter_input( INPUT_GET, 'wbccp_demo_action', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$demo_nonce  = filter_input( INPUT_GET, 'wbccp_demo_nonce', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$demo_action = $demo_action ? sanitize_key( $demo_action ) : '';
+		$demo_nonce  = $demo_nonce ? sanitize_text_field( $demo_nonce ) : '';
+		if ( empty( $demo_action ) || empty( $demo_nonce ) ) {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( wp_unslash( $_GET['wbccp_demo_nonce'] ), 'wbccp_demo_action' ) ) {
+		if ( ! wp_verify_nonce( $demo_nonce, 'wbccp_demo_action' ) ) {
 			wp_safe_redirect( add_query_arg( 'wbccp_demo', 'error', admin_url( 'options-general.php?page=wbccp-settings' ) ) );
 			exit;
 		}
 
-		$action = sanitize_text_field( wp_unslash( $_GET['wbccp_demo_action'] ) );
+		$action = $demo_action;
 		if ( 'generate' === $action ) {
 			self::generate_demo_data();
 		}

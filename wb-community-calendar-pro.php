@@ -4,6 +4,8 @@
  * Description: Lightweight BuddyPress-native community calendar with group events.
  * Version: 0.1.0
  * Author: WB
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wb-community-calendar-pro
  * Domain Path: /languages
  */

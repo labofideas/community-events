@@ -185,6 +185,7 @@ class WBCCP_BP {
 	}
 
 	public static function handle_frontend_actions() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- per-action nonces are verified inside each handler.
 		if ( empty( $_POST['wbccp_action'] ) ) {
 			return;
 		}
@@ -193,6 +194,7 @@ class WBCCP_BP {
 			return;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- each action validates its own nonce in dedicated handler.
 		$action = sanitize_text_field( wp_unslash( $_POST['wbccp_action'] ) );
 
 		if ( 'create_event' === $action ) {
@@ -221,7 +223,8 @@ class WBCCP_BP {
 	}
 
 	private static function handle_create_event() {
-		if ( empty( $_POST['wbccp_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_nonce'] ), 'wbccp_create_event' ) ) {
+		$nonce = isset( $_POST['wbccp_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_create_event' ) ) {
 			return;
 		}
 
@@ -317,7 +320,8 @@ class WBCCP_BP {
 	}
 
 	private static function handle_rsvp() {
-		if ( empty( $_POST['wbccp_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_nonce'] ), 'wbccp_rsvp' ) ) {
+		$nonce = isset( $_POST['wbccp_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_rsvp' ) ) {
 			return;
 		}
 
@@ -389,7 +393,8 @@ class WBCCP_BP {
 			);
 		}
 
-		if ( empty( $_POST['nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['nonce'] ), 'wbccp_rsvp_ajax' ) ) {
+		$ajax_nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+		if ( empty( $ajax_nonce ) || ! wp_verify_nonce( $ajax_nonce, 'wbccp_rsvp_ajax' ) ) {
 			wp_send_json_error(
 				array( 'message' => __( 'Security check failed.', 'wb-community-calendar-pro' ) ),
 				403
@@ -505,7 +510,8 @@ class WBCCP_BP {
 	}
 
 	private static function handle_delete_event() {
-		if ( empty( $_POST['wbccp_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_nonce'] ), 'wbccp_delete_event' ) ) {
+		$nonce = isset( $_POST['wbccp_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_delete_event' ) ) {
 			return;
 		}
 
@@ -540,7 +546,8 @@ class WBCCP_BP {
 	}
 
 	private static function handle_update_event() {
-		if ( empty( $_POST['wbccp_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_nonce'] ), 'wbccp_update_event' ) ) {
+		$nonce = isset( $_POST['wbccp_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_update_event' ) ) {
 			return;
 		}
 
@@ -639,7 +646,8 @@ class WBCCP_BP {
 	}
 
 	private static function handle_approve_event() {
-		if ( empty( $_POST['wbccp_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_nonce'] ), 'wbccp_approve_event' ) ) {
+		$nonce = isset( $_POST['wbccp_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_approve_event' ) ) {
 			return;
 		}
 
@@ -675,7 +683,8 @@ class WBCCP_BP {
 	}
 
 	private static function handle_reject_event() {
-		if ( empty( $_POST['wbccp_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_nonce'] ), 'wbccp_reject_event' ) ) {
+		$nonce = isset( $_POST['wbccp_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_reject_event' ) ) {
 			return;
 		}
 
@@ -719,6 +728,7 @@ class WBCCP_BP {
 	}
 
 	private static function handle_event_image_upload( $event_id ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce is verified in parent action handlers.
 		if ( empty( $_FILES['wbccp_image'] ) || empty( $_FILES['wbccp_image']['name'] ) ) {
 			return true;
 		}
@@ -727,10 +737,12 @@ class WBCCP_BP {
 			return new WP_Error( 'upload-permission', __( 'You do not have permission to upload files.', 'wb-community-calendar-pro' ) );
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce is verified in parent action handlers.
 		if ( ! empty( $_FILES['wbccp_image']['error'] ) ) {
 			return new WP_Error( 'upload-error', __( 'There was an error uploading the image.', 'wb-community-calendar-pro' ) );
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce is verified in parent action handlers.
 		if ( ! empty( $_FILES['wbccp_image']['size'] ) && (int) $_FILES['wbccp_image']['size'] > 5 * MB_IN_BYTES ) {
 			return new WP_Error( 'upload-size', __( 'Image is too large. Maximum size is 5MB.', 'wb-community-calendar-pro' ) );
 		}
@@ -739,6 +751,7 @@ class WBCCP_BP {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- file data is validated by wp_handle_upload and mime checks.
 		$file = $_FILES['wbccp_image'];
 		$upload = wp_handle_upload( $file, array( 'test_form' => false ) );
 		if ( empty( $upload['file'] ) ) {
@@ -805,13 +818,12 @@ class WBCCP_BP {
 		}
 
 		echo '<p><label>' . esc_html__( 'Event Categories', 'wb-community-calendar-pro' ) . '</label><br />';
-		echo '<select name="wbccp_categories[]" multiple class="wbccp-taxonomy-select">';
-		if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-			foreach ( $terms as $term ) {
-				$selected = in_array( $term->term_id, $selected_categories, true ) ? ' selected' : '';
-				echo '<option value="' . esc_attr( $term->term_id ) . '"' . $selected . '>' . esc_html( $term->name ) . '</option>';
+			echo '<select name="wbccp_categories[]" multiple class="wbccp-taxonomy-select">';
+			if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+				foreach ( $terms as $term ) {
+					echo '<option value="' . esc_attr( $term->term_id ) . '"' . ( in_array( $term->term_id, $selected_categories, true ) ? ' selected="selected"' : '' ) . '>' . esc_html( $term->name ) . '</option>';
+				}
 			}
-		}
 		echo '</select></p>';
 
 		echo '<p><label>' . esc_html__( 'Event Tags', 'wb-community-calendar-pro' ) . '</label><br />';
@@ -920,7 +932,8 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 			return;
 		}
 
-		$current_event_id = isset( $_GET['wbccp_event'] ) ? absint( $_GET['wbccp_event'] ) : 0;
+		$current_event_id = filter_input( INPUT_GET, 'wbccp_event', FILTER_SANITIZE_NUMBER_INT );
+		$current_event_id = $current_event_id ? absint( $current_event_id ) : 0;
 		$base_url = bp_get_group_permalink( groups_get_group( $group_id ) ) . 'community-calendar/';
 		$can_create = WBCCP_BP::can_user_create_event( get_current_user_id(), $group_id );
 		$view = WBCCP_Views::get_view();
@@ -946,7 +959,8 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 		echo '</div>';
 		echo '</div>';
 
-		$notice = isset( $_GET['wbccp_notice'] ) ? sanitize_key( wp_unslash( $_GET['wbccp_notice'] ) ) : '';
+		$notice = filter_input( INPUT_GET, 'wbccp_notice', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$notice = $notice ? sanitize_key( $notice ) : '';
 		if ( $notice ) {
 			$messages = array(
 				'created'         => __( 'Event created successfully.', 'wb-community-calendar-pro' ),
@@ -977,7 +991,8 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 		echo '<div class="wbccp-view-toggle-wrap">';
 		$panel_ids = WBCCP_Views::render_view_toggle( $base_url );
 		echo '</div>';
-		$edit_event_id = isset( $_GET['wbccp_edit'] ) ? absint( $_GET['wbccp_edit'] ) : 0;
+		$edit_event_id = filter_input( INPUT_GET, 'wbccp_edit', FILTER_SANITIZE_NUMBER_INT );
+		$edit_event_id = $edit_event_id ? absint( $edit_event_id ) : 0;
 		$editing_event = $edit_event_id && current_user_can( 'edit_post', $edit_event_id ) ? get_post( $edit_event_id ) : null;
 
 		ob_start();
@@ -1062,10 +1077,11 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 		if ( $can_moderate ) {
 			$pending_events = new WP_Query(
 				array(
-					'post_type'      => WBCCP_CPT::CPT,
-					'post_status'    => 'pending',
-					'posts_per_page' => 20,
-					'meta_query'     => array(
+						'post_type'      => WBCCP_CPT::CPT,
+						'post_status'    => 'pending',
+						'posts_per_page' => 20,
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- required to fetch group-specific pending events.
+						'meta_query'     => array(
 						array(
 							'key'   => 'wbccp_group_id',
 							'value' => (int) $group_id,
@@ -1112,6 +1128,7 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 
 		$tax_query = WBCCP_CPT::get_tax_query_from_request();
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- buffered output is generated by this class and already escaped at source.
 		echo $deferred_sections;
 		echo '<div class="wbccp-view-panels">';
 
@@ -1120,12 +1137,15 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 		echo '</div>';
 
 		echo '<div class="wbccp-view-panel wbccp-view-panel--list' . ( 'list' === $view ? ' is-active' : '' ) . '" data-view="list" id="' . esc_attr( $panel_ids['list'] ) . '">';
-		$filter = isset( $_GET['wbccp_filter'] ) ? sanitize_text_field( wp_unslash( $_GET['wbccp_filter'] ) ) : 'upcoming';
+		$filter = filter_input( INPUT_GET, 'wbccp_filter', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$filter = $filter ? sanitize_text_field( $filter ) : 'upcoming';
 		if ( ! in_array( $filter, array( 'upcoming', 'past', 'all' ), true ) ) {
 			$filter = 'upcoming';
 		}
-			$search = isset( $_GET['wbccp_search'] ) ? sanitize_text_field( wp_unslash( $_GET['wbccp_search'] ) ) : '';
-			$page = isset( $_GET['wbccp_page'] ) ? max( 1, absint( $_GET['wbccp_page'] ) ) : 1;
+			$search = filter_input( INPUT_GET, 'wbccp_search', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$search = $search ? sanitize_text_field( $search ) : '';
+			$page = filter_input( INPUT_GET, 'wbccp_page', FILTER_SANITIZE_NUMBER_INT );
+			$page = $page ? max( 1, absint( $page ) ) : 1;
 			$per_page = 10;
 
 			$category_terms = get_terms(
@@ -1134,8 +1154,10 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 					'hide_empty' => false,
 				)
 			);
-			$selected_category = isset( $_GET['wbccp_category'] ) ? absint( $_GET['wbccp_category'] ) : 0;
-			$selected_tag = isset( $_GET['wbccp_tag'] ) ? sanitize_text_field( wp_unslash( $_GET['wbccp_tag'] ) ) : '';
+			$selected_category = filter_input( INPUT_GET, 'wbccp_category', FILTER_SANITIZE_NUMBER_INT );
+			$selected_category = $selected_category ? absint( $selected_category ) : 0;
+			$selected_tag = filter_input( INPUT_GET, 'wbccp_tag', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+			$selected_tag = $selected_tag ? sanitize_text_field( $selected_tag ) : '';
 
 			echo '<form class="wbccp-filters" method="get">';
 			echo '<input type="hidden" name="wbccp_view" value="list" />';
@@ -1293,14 +1315,16 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 				$capacity = (int) get_post_meta( $event_id, 'wbccp_capacity', true );
 				if ( $capacity ) {
 					$spots_left = max( 0, $capacity - ( (int) $counts['attending'] + (int) $counts['maybe'] ) );
+					/* translators: %d: event capacity. */
 					echo '<div class="wbccp-event-capacity" data-event-id="' . esc_attr( $event_id ) . '" data-capacity="' . esc_attr( $capacity ) . '">' . esc_html( sprintf( __( 'Capacity: %d', 'wb-community-calendar-pro' ), $capacity ) ) . '</div>';
+					/* translators: %d: available spots. */
 					echo '<div class="wbccp-event-spots" data-event-id="' . esc_attr( $event_id ) . '" data-capacity="' . esc_attr( $capacity ) . '">' . esc_html( $spots_left ? sprintf( __( 'Spots left: %d', 'wb-community-calendar-pro' ), $spots_left ) : __( 'Event is full.', 'wb-community-calendar-pro' ) ) . '</div>';
 				}
 				echo '</li>';
 			}
 			echo '</ul>';
 		} else {
-			echo WBCCP_Views::render_empty_state();
+			echo wp_kses_post( WBCCP_Views::render_empty_state() );
 		}
 
 		if ( $total_pages > 1 ) {
@@ -1321,6 +1345,7 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 			if ( $page > 1 ) {
 				echo '<a class="button" href="' . esc_url( add_query_arg( array_merge( $query_args, array( 'wbccp_page' => $page - 1 ) ), $base_url ) ) . '">' . esc_html__( 'Prev', 'wb-community-calendar-pro' ) . '</a> ';
 			}
+			/* translators: 1: current page number, 2: total pages. */
 			echo '<span>' . esc_html( sprintf( __( 'Page %1$d of %2$d', 'wb-community-calendar-pro' ), $page, $total_pages ) ) . '</span>';
 			if ( $page < $total_pages ) {
 				echo ' <a class="button" href="' . esc_url( add_query_arg( array_merge( $query_args, array( 'wbccp_page' => $page + 1 ) ), $base_url ) ) . '">' . esc_html__( 'Next', 'wb-community-calendar-pro' ) . '</a>';

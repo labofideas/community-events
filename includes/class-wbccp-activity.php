@@ -50,7 +50,9 @@ class WBCCP_Activity {
 		$group_id = (int) get_post_meta( $post->ID, 'wbccp_group_id', true );
 		if ( $group_id && function_exists( 'groups_record_activity' ) ) {
 			$action = $user_link
+				/* translators: 1: member profile link, 2: event link. */
 				? sprintf( __( '%1$s created a new group event: %2$s', 'wb-community-calendar-pro' ), $user_link, '<a href="' . esc_url( $event_link ) . '">' . esc_html( $title ) . '</a>' )
+				/* translators: %s: event link. */
 				: sprintf( __( 'New group event: %s', 'wb-community-calendar-pro' ), '<a href="' . esc_url( $event_link ) . '">' . esc_html( $title ) . '</a>' );
 
 			$activity_id = groups_record_activity(
@@ -67,7 +69,9 @@ class WBCCP_Activity {
 			);
 		} else {
 			$action = $user_link
+				/* translators: 1: member profile link, 2: event link. */
 				? sprintf( __( '%1$s created a sitewide event: %2$s', 'wb-community-calendar-pro' ), $user_link, '<a href="' . esc_url( $event_link ) . '">' . esc_html( $title ) . '</a>' )
+				/* translators: %s: event link. */
 				: sprintf( __( 'New sitewide event: %s', 'wb-community-calendar-pro' ), '<a href="' . esc_url( $event_link ) . '">' . esc_html( $title ) . '</a>' );
 
 			$activity_id = bp_activity_add(

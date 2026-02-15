@@ -1,8 +1,8 @@
 === WB Community Calendar Pro ===
 Contributors: wb
-Tags: buddypress, community, calendar, events, groups, rsvp
+Tags: buddypress, community, calendar, events, rsvp
 Requires at least: 6.0
-Tested up to: 6.6
+Tested up to: 6.9
 Requires PHP: 8.0
 Stable tag: 0.1.0
 License: GPLv2 or later

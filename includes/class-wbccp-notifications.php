@@ -23,7 +23,9 @@ class WBCCP_Notifications {
 			return;
 		}
 
+		/* translators: %s: event title. */
 		$subject = sprintf( __( 'Event canceled: %s', 'wb-community-calendar-pro' ), $title );
+		/* translators: %s: event title. */
 		$body = sprintf( __( 'The event "%s" has been canceled.', 'wb-community-calendar-pro' ), $title );
 
 		self::send_mail( $recipients, $subject, $body, $event_id );
@@ -45,7 +47,9 @@ class WBCCP_Notifications {
 		);
 		$status_text = isset( $status_map[ $status ] ) ? $status_map[ $status ] : $status;
 
+		/* translators: %s: event title. */
 		$subject = sprintf( __( 'RSVP update: %s', 'wb-community-calendar-pro' ), $event_title );
+		/* translators: 1: member display name, 2: RSVP status text, 3: event title. */
 		$body = sprintf( __( '%1$s %2$s the event "%3$s".', 'wb-community-calendar-pro' ), $name, $status_text, $event_title );
 
 		self::send_mail( $recipients, $subject, $body, $event_id );
@@ -124,18 +128,23 @@ class WBCCP_Notifications {
 		$location = get_post_meta( $event_id, 'wbccp_location', true );
 
 		$label = 'day' === $type ? __( 'tomorrow', 'wb-community-calendar-pro' ) : __( 'in one hour', 'wb-community-calendar-pro' );
+		/* translators: 1: event title, 2: relative time label. */
 		$subject = sprintf( __( 'Reminder: %1$s starts %2$s', 'wb-community-calendar-pro' ), $event_title, $label );
 
 		$lines = array(
+			/* translators: 1: event title, 2: relative time label. */
 			sprintf( __( 'This is a reminder that "%1$s" starts %2$s.', 'wb-community-calendar-pro' ), $event_title, $label ),
 		);
 		if ( $when ) {
+			/* translators: %s: formatted event date/time. */
 			$lines[] = sprintf( __( 'When: %s', 'wb-community-calendar-pro' ), $when );
 		}
 		if ( $location ) {
+			/* translators: %s: event location. */
 			$lines[] = sprintf( __( 'Where: %s', 'wb-community-calendar-pro' ), $location );
 		}
 		if ( $event_link ) {
+			/* translators: %s: event URL. */
 			$lines[] = sprintf( __( 'View event: %s', 'wb-community-calendar-pro' ), $event_link );
 		}
 
@@ -156,18 +165,23 @@ class WBCCP_Notifications {
 		$location = get_post_meta( $event_id, 'wbccp_location', true );
 
 		$action_text = 'created' === $type ? __( 'created', 'wb-community-calendar-pro' ) : __( 'updated', 'wb-community-calendar-pro' );
+		/* translators: 1: action text (created/updated), 2: event title. */
 		$subject = sprintf( __( 'Event %1$s: %2$s', 'wb-community-calendar-pro' ), $action_text, $event_title );
 
 		$lines = array(
-			sprintf( __( 'The event "%s" was %s.', 'wb-community-calendar-pro' ), $event_title, $action_text ),
+			/* translators: 1: event title, 2: action text (created/updated). */
+			sprintf( __( 'The event "%1$s" was %2$s.', 'wb-community-calendar-pro' ), $event_title, $action_text ),
 		);
 		if ( $start ) {
+			/* translators: %s: formatted event date/time. */
 			$lines[] = sprintf( __( 'When: %s', 'wb-community-calendar-pro' ), $start );
 		}
 		if ( $location ) {
+			/* translators: %s: event location. */
 			$lines[] = sprintf( __( 'Where: %s', 'wb-community-calendar-pro' ), $location );
 		}
 		if ( $event_link ) {
+			/* translators: %s: event URL. */
 			$lines[] = sprintf( __( 'View event: %s', 'wb-community-calendar-pro' ), $event_link );
 		}
 

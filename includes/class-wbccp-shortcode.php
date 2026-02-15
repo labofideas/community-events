@@ -94,15 +94,18 @@ class WBCCP_Shortcode {
 		$submission_notice = '';
 		$submission_class = '';
 		$messages = self::get_notice_messages();
-		if ( isset( $_GET['wbccp_notice'] ) ) {
-			$notice = sanitize_key( wp_unslash( $_GET['wbccp_notice'] ) );
+		$notice = filter_input( INPUT_GET, 'wbccp_notice', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$notice = $notice ? sanitize_key( $notice ) : '';
+		if ( $notice ) {
 			if ( isset( $messages[ $notice ] ) ) {
 				$success = in_array( $notice, array( 'submitted', 'published' ), true );
 				$submission_notice = $messages[ $notice ];
 				$submission_class = $success ? 'wbccp-form-notice--success' : 'wbccp-form-notice--error';
 			}
 		}
-		if ( $allow_submit && $allow_sitewide && 'POST' === $_SERVER['REQUEST_METHOD'] && ! empty( $_POST['wbccp_action'] ) ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- submission nonce is verified in handle_sitewide_submission().
+		if ( $allow_submit && $allow_sitewide && isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === strtoupper( sanitize_text_field( wp_unslash( $_SERVER['REQUEST_METHOD'] ) ) ) && ! empty( $_POST['wbccp_action'] ) ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- submission nonce is verified in handle_sitewide_submission().
 			$action = sanitize_text_field( wp_unslash( $_POST['wbccp_action'] ) );
 			if ( 'submit_sitewide' === $action ) {
 				$result = self::handle_sitewide_submission();
@@ -180,8 +183,10 @@ class WBCCP_Shortcode {
 				'hide_empty' => false,
 			)
 		);
-		$selected_category = isset( $_GET['wbccp_category'] ) ? absint( $_GET['wbccp_category'] ) : 0;
-		$selected_tag = isset( $_GET['wbccp_tag'] ) ? sanitize_text_field( wp_unslash( $_GET['wbccp_tag'] ) ) : '';
+		$selected_category = filter_input( INPUT_GET, 'wbccp_category', FILTER_SANITIZE_NUMBER_INT );
+		$selected_category = $selected_category ? absint( $selected_category ) : 0;
+		$selected_tag = filter_input( INPUT_GET, 'wbccp_tag', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$selected_tag = $selected_tag ? sanitize_text_field( $selected_tag ) : '';
 
 		echo '<form class="wbccp-filters" method="get">';
 		echo '<input type="hidden" name="wbccp_view" value="list" />';
@@ -245,14 +250,15 @@ class WBCCP_Shortcode {
 				}
 				$capacity = (int) get_post_meta( $event_id, 'wbccp_capacity', true );
 				if ( $capacity ) {
-					echo '<div class="wbccp-event-capacity" data-event-id="' . esc_attr( $event_id ) . '" data-capacity="' . esc_attr( $capacity ) . '">' . esc_html( sprintf( __( 'Capacity: %d', 'wb-community-calendar-pro' ), $capacity ) ) . '</div>';
+						/* translators: %d: event capacity. */
+						echo '<div class="wbccp-event-capacity" data-event-id="' . esc_attr( $event_id ) . '" data-capacity="' . esc_attr( $capacity ) . '">' . esc_html( sprintf( __( 'Capacity: %d', 'wb-community-calendar-pro' ), $capacity ) ) . '</div>';
+					}
+					echo '</li>';
 				}
-				echo '</li>';
+				echo '</ul>';
+			} else {
+				echo wp_kses_post( WBCCP_Views::render_empty_state() );
 			}
-			echo '</ul>';
-		} else {
-			echo WBCCP_Views::render_empty_state();
-		}
 		echo '</div>';
 		echo '<div class="wbccp-view-panel wbccp-view-panel--month' . ( 'month' === $view ? ' is-active' : '' ) . '" data-view="month" id="' . esc_attr( $panel_ids['month'] ) . '">';
 		$month_scope = 'sitewide' === $scope ? 'sitewide' : ( $group_id ? 'group' : 'all' );
@@ -322,7 +328,8 @@ class WBCCP_Shortcode {
 			return array( 'success' => false, 'message' => __( 'Please log in to submit an event.', 'wb-community-calendar-pro' ) );
 		}
 
-		if ( empty( $_POST['wbccp_nonce'] ) || ! wp_verify_nonce( wp_unslash( $_POST['wbccp_nonce'] ), 'wbccp_submit_sitewide' ) ) {
+		$nonce = isset( $_POST['wbccp_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['wbccp_nonce'] ) ) : '';
+		if ( empty( $nonce ) || ! wp_verify_nonce( $nonce, 'wbccp_submit_sitewide' ) ) {
 			return array( 'success' => false, 'message' => __( 'Security check failed.', 'wb-community-calendar-pro' ) );
 		}
 
@@ -410,6 +417,7 @@ class WBCCP_Shortcode {
 	}
 
 	private static function handle_event_image_upload( $event_id ) {
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce is verified in handle_sitewide_submission().
 		if ( empty( $_FILES['wbccp_image'] ) || empty( $_FILES['wbccp_image']['name'] ) ) {
 			return true;
 		}
@@ -418,10 +426,12 @@ class WBCCP_Shortcode {
 			return new WP_Error( 'upload-permission', __( 'You do not have permission to upload files.', 'wb-community-calendar-pro' ) );
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce is verified in handle_sitewide_submission().
 		if ( ! empty( $_FILES['wbccp_image']['error'] ) ) {
 			return new WP_Error( 'upload-error', __( 'There was an error uploading the image.', 'wb-community-calendar-pro' ) );
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce is verified in handle_sitewide_submission().
 		if ( ! empty( $_FILES['wbccp_image']['size'] ) && (int) $_FILES['wbccp_image']['size'] > 5 * MB_IN_BYTES ) {
 			return new WP_Error( 'upload-size', __( 'Image is too large. Maximum size is 5MB.', 'wb-community-calendar-pro' ) );
 		}
@@ -430,6 +440,7 @@ class WBCCP_Shortcode {
 			require_once ABSPATH . 'wp-admin/includes/file.php';
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing,WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- file data is validated by wp_handle_upload and mime checks.
 		$file = $_FILES['wbccp_image'];
 		$upload = wp_handle_upload( $file, array( 'test_form' => false ) );
 		if ( empty( $upload['file'] ) ) {

@@ -6,8 +6,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class WBCCP_Plugin {
 	public static function init() {
-		self::load_textdomain();
-
 		require_once WBCCP_PATH . 'includes/class-wbccp-cpt.php';
 		require_once WBCCP_PATH . 'includes/class-wbccp-bp.php';
 		require_once WBCCP_PATH . 'includes/class-wbccp-shortcode.php';
@@ -38,11 +36,7 @@ class WBCCP_Plugin {
 	}
 
 	public static function load_textdomain() {
-		load_plugin_textdomain(
-			'wb-community-calendar-pro',
-			false,
-			dirname( plugin_basename( WBCCP_PATH . 'wb-community-calendar-pro.php' ) ) . '/languages'
-		);
+		// Since WordPress 4.6, plugin text domains are loaded automatically.
 	}
 
 	public static function activate() {

@@ -437,7 +437,8 @@ class WBCCP_CPT {
 			return;
 		}
 
-		if ( ! wp_verify_nonce( wp_unslash( $_POST['wbccp_event_nonce'] ), 'wbccp_save_event' ) ) {
+		$nonce = sanitize_text_field( wp_unslash( $_POST['wbccp_event_nonce'] ) );
+		if ( ! wp_verify_nonce( $nonce, 'wbccp_save_event' ) ) {
 			return;
 		}
 
@@ -598,11 +599,14 @@ class WBCCP_CPT {
 	}
 
 	public static function maybe_export_ical() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only query args for public iCal exports.
 		if ( empty( $_GET['wbccp_ical'] ) ) {
 			return;
 		}
 
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only query args for public iCal exports.
 		$event_id = isset( $_GET['event_id'] ) ? absint( $_GET['event_id'] ) : 0;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only query args for public iCal exports.
 		$group_id = isset( $_GET['group_id'] ) ? absint( $_GET['group_id'] ) : 0;
 
 		if ( $event_id ) {
@@ -627,6 +631,7 @@ class WBCCP_CPT {
 					'post_type'      => self::CPT,
 					'post_status'    => 'publish',
 					'posts_per_page' => 200,
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- required to fetch group-specific events.
 					'meta_query'     => array(
 						array(
 							'key'   => 'wbccp_group_id',
@@ -635,7 +640,8 @@ class WBCCP_CPT {
 					),
 					'orderby'        => 'meta_value',
 					'order'          => 'ASC',
-					'meta_key'       => 'wbccp_start',
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- ordering by event start meta is intentional.
+						'meta_key'       => 'wbccp_start',
 				)
 			);
 
@@ -671,7 +677,8 @@ class WBCCP_CPT {
 	public static function get_tax_query_from_request() {
 		$tax_query = array();
 
-		$category = isset( $_GET['wbccp_category'] ) ? absint( $_GET['wbccp_category'] ) : 0;
+		$category = filter_input( INPUT_GET, 'wbccp_category', FILTER_SANITIZE_NUMBER_INT );
+		$category = $category ? absint( $category ) : 0;
 		if ( $category ) {
 			$tax_query[] = array(
 				'taxonomy' => self::TAX_CATEGORY,
@@ -680,7 +687,8 @@ class WBCCP_CPT {
 			);
 		}
 
-		$tag = isset( $_GET['wbccp_tag'] ) ? sanitize_text_field( wp_unslash( $_GET['wbccp_tag'] ) ) : '';
+		$tag = filter_input( INPUT_GET, 'wbccp_tag', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$tag = $tag ? sanitize_text_field( $tag ) : '';
 		if ( $tag ) {
 			$tax_query[] = array(
 				'taxonomy' => self::TAX_TAG,
@@ -771,6 +779,7 @@ class WBCCP_CPT {
 		nocache_headers();
 		header( 'Content-Type: text/calendar; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename=' . sanitize_file_name( $filename ) );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- iCal file output must remain unescaped plain text.
 		echo implode( "\r\n", $lines );
 		exit;
 	}
@@ -958,9 +967,10 @@ class WBCCP_CPT {
 		);
 		$label = isset( $freq_map[ $rule['FREQ'] ] ) ? $freq_map[ $rule['FREQ'] ] : $rule['FREQ'];
 
-		if ( ! empty( $rule['INTERVAL'] ) && $rule['INTERVAL'] > 1 ) {
-			$label = sprintf( __( 'Every %d %s', 'wb-community-calendar-pro' ), (int) $rule['INTERVAL'], strtolower( $label ) );
-		}
+			if ( ! empty( $rule['INTERVAL'] ) && $rule['INTERVAL'] > 1 ) {
+				/* translators: 1: interval count, 2: recurrence label (e.g., daily). */
+				$label = sprintf( __( 'Every %1$d %2$s', 'wb-community-calendar-pro' ), (int) $rule['INTERVAL'], strtolower( $label ) );
+			}
 
 		$details = array();
 
@@ -988,16 +998,19 @@ class WBCCP_CPT {
 		}
 
 		if ( ! empty( $rule['BYMONTHDAY'] ) ) {
-			$details[] = sprintf( __( 'Day %s', 'wb-community-calendar-pro' ), implode( ', ', array_map( 'intval', (array) $rule['BYMONTHDAY'] ) ) );
-		}
+				/* translators: %s: day numbers list. */
+				$details[] = sprintf( __( 'Day %s', 'wb-community-calendar-pro' ), implode( ', ', array_map( 'intval', (array) $rule['BYMONTHDAY'] ) ) );
+			}
 
-		if ( ! empty( $rule['COUNT'] ) ) {
-			$details[] = sprintf( __( 'For %d occurrences', 'wb-community-calendar-pro' ), (int) $rule['COUNT'] );
-		}
+			if ( ! empty( $rule['COUNT'] ) ) {
+				/* translators: %d: number of occurrences. */
+				$details[] = sprintf( __( 'For %d occurrences', 'wb-community-calendar-pro' ), (int) $rule['COUNT'] );
+			}
 
-		if ( ! empty( $rule['UNTIL'] ) ) {
-			$details[] = sprintf( __( 'Until %s', 'wb-community-calendar-pro' ), $rule['UNTIL'] );
-		}
+			if ( ! empty( $rule['UNTIL'] ) ) {
+				/* translators: %s: recurrence end date. */
+				$details[] = sprintf( __( 'Until %s', 'wb-community-calendar-pro' ), $rule['UNTIL'] );
+			}
 
 		return trim( $label . ( $details ? ' (' . implode( '; ', $details ) . ')' : '' ) );
 	}
@@ -1267,8 +1280,10 @@ class WBCCP_CPT {
 				'post_type'      => self::CPT,
 				'post_status'    => 'publish',
 				'posts_per_page' => -1,
-				'meta_query'     => $meta_query,
-				'tax_query'      => $tax_query,
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- required filtering by group/sitewide scope.
+					'meta_query'     => $meta_query,
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- optional taxonomy filters are user-driven.
+					'tax_query'      => $tax_query,
 			)
 		);
 
@@ -1362,11 +1377,28 @@ class WBCCP_CPT {
 	}
 
 	public static function render_admin_notices() {
-		if ( empty( $_GET['post_type'] ) && empty( $_GET['post'] ) ) {
+		$post_type = filter_input( INPUT_GET, 'post_type', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		$post_id   = filter_input( INPUT_GET, 'post', FILTER_SANITIZE_NUMBER_INT );
+		if ( empty( $post_type ) && empty( $post_id ) ) {
 			return;
 		}
 
-		$errors = isset( $_GET['wbccp_error'] ) ? (array) $_GET['wbccp_error'] : array();
+		$errors = array();
+		$raw_errors = filter_input(
+			INPUT_GET,
+			'wbccp_error',
+			FILTER_DEFAULT,
+			array( 'flags' => FILTER_REQUIRE_ARRAY )
+		);
+		if ( is_array( $raw_errors ) ) {
+			$errors = array_map(
+				static function( $error ) {
+					return sanitize_key( wp_unslash( (string) $error ) );
+				},
+				$raw_errors
+			);
+			$errors     = array_filter( $errors );
+		}
 		if ( empty( $errors ) ) {
 			return;
 		}
@@ -1480,7 +1512,8 @@ class WBCCP_CPT {
 			'post_type'      => self::CPT,
 			'post_status'    => 'publish',
 			'posts_per_page' => 20,
-			'meta_query'     => array(
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- list is intentionally scoped by group meta.
+				'meta_query'     => array(
 				array(
 					'key'   => 'wbccp_group_id',
 					'value' => (int) $group_id,
@@ -1488,7 +1521,8 @@ class WBCCP_CPT {
 			),
 			'orderby'        => 'meta_value',
 			'order'          => 'ASC',
-			'meta_key'       => 'wbccp_start',
+				// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- ordering by start timestamp is intentional.
+				'meta_key'       => 'wbccp_start',
 		);
 
 		$query_args = wp_parse_args( $args, $defaults );

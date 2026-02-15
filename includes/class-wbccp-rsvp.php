@@ -45,8 +45,10 @@ class WBCCP_RSVP {
 
 		$table = $wpdb->prefix . self::TABLE;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- lightweight RSVP lookup query.
 		$status = $wpdb->get_var(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is plugin-controlled.
 				"SELECT status FROM {$table} WHERE event_id = %d AND user_id = %d",
 				$event_id,
 				$user_id
@@ -64,6 +66,7 @@ class WBCCP_RSVP {
 		}
 
 		$table = $wpdb->prefix . self::TABLE;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- write operation for RSVP upsert flow.
 		$wpdb->delete(
 			$table,
 			array(
@@ -80,6 +83,7 @@ class WBCCP_RSVP {
 			'updated_at' => current_time( 'mysql' ),
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- write operation for RSVP upsert flow.
 		return (bool) $wpdb->replace(
 			$table,
 			$data,
@@ -97,8 +101,10 @@ class WBCCP_RSVP {
 
 		$table = $wpdb->prefix . self::TABLE;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- aggregate counts from RSVP table.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table name is plugin-controlled.
 				"SELECT status, COUNT(*) as total FROM {$table} WHERE event_id = %d GROUP BY status",
 				$event_id
 			),
@@ -140,8 +146,10 @@ class WBCCP_RSVP {
 		$table = $wpdb->prefix . self::TABLE;
 		$placeholders = implode( ',', array_fill( 0, count( $event_ids ), '%d' ) );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- batched RSVP status lookup.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table and placeholders are generated safely.
 				"SELECT event_id, status FROM {$table} WHERE user_id = %d AND event_id IN ({$placeholders})",
 				array_merge( array( $user_id ), $event_ids )
 			),
@@ -175,11 +183,13 @@ class WBCCP_RSVP {
 		$table = $wpdb->prefix . self::TABLE;
 		$placeholders = implode( ',', array_fill( 0, count( $event_ids ), '%d' ) );
 
+			$query = $wpdb->prepare(
+				"SELECT event_id, status, COUNT(*) as total FROM {$table} WHERE event_id IN ({$placeholders}) GROUP BY event_id, status", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- table and placeholders are generated safely from controlled values.
+				...$event_ids
+			);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- batched RSVP count aggregation.
 		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT event_id, status, COUNT(*) as total FROM {$table} WHERE event_id IN ({$placeholders}) GROUP BY event_id, status",
-				$event_ids
-			),
+			$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- query is prepared above.
 			ARRAY_A
 		);
 
@@ -227,7 +237,8 @@ class WBCCP_RSVP {
 			}
 		}
 
-		$rows = $wpdb->get_col( $wpdb->prepare( $sql, $params ) );
+		$prepared_sql = $wpdb->prepare( $sql, $params ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQL.NotPrepared -- table and placeholders are generated safely before execution.
+		$rows = $wpdb->get_col( $prepared_sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- batched lookup with prepared query.
 		$rows = array_map( 'absint', (array) $rows );
 		return array_values( array_unique( array_filter( $rows ) ) );
 	}
@@ -249,8 +260,10 @@ class WBCCP_RSVP {
 		$table = $wpdb->prefix . self::TABLE;
 		$placeholders = implode( ',', array_fill( 0, count( $statuses ), '%s' ) );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- batched RSVP user lookup.
 		$user_ids = $wpdb->get_col(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- table and placeholders are generated safely.
 				"SELECT user_id FROM {$table} WHERE event_id = %d AND status IN ({$placeholders})",
 				array_merge( array( $event_id ), $statuses )
 			)
@@ -288,11 +301,10 @@ class WBCCP_RSVP {
 		$table = $wpdb->prefix . self::TABLE;
 		$placeholders = implode( ',', array_fill( 0, count( $event_ids ), '%d' ) );
 
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM {$table} WHERE event_id IN ({$placeholders})",
-				$event_ids
-			)
+		$delete_query = $wpdb->prepare(
+			"DELETE FROM {$table} WHERE event_id IN ({$placeholders})", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- table and placeholders are generated safely from controlled values.
+			...$event_ids
 		);
+		$wpdb->query( $delete_query ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching,WordPress.DB.PreparedSQL.NotPrepared -- batched cleanup with prepared query.
 	}
 }

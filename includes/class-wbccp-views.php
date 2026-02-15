@@ -5,14 +5,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 class WBCCP_Views {
+	private static function get_query_int( $key ) {
+		$value = filter_input( INPUT_GET, $key, FILTER_SANITIZE_NUMBER_INT );
+		return null !== $value ? absint( $value ) : 0;
+	}
+
+	private static function get_query_text( $key ) {
+		$value = filter_input( INPUT_GET, $key, FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		return null !== $value ? sanitize_text_field( $value ) : '';
+	}
+
 	public static function get_view() {
-		$view = isset( $_GET['wbccp_view'] ) ? sanitize_text_field( wp_unslash( $_GET['wbccp_view'] ) ) : 'list';
+		$view = self::get_query_text( 'wbccp_view' );
+		$view = $view ? $view : 'list';
 		return in_array( $view, array( 'list', 'month' ), true ) ? $view : 'list';
 	}
 
 	public static function get_month_year() {
-		$year  = isset( $_GET['wbccp_year'] ) ? absint( $_GET['wbccp_year'] ) : 0;
-		$month = isset( $_GET['wbccp_month'] ) ? absint( $_GET['wbccp_month'] ) : 0;
+		$year  = self::get_query_int( 'wbccp_year' );
+		$month = self::get_query_int( 'wbccp_month' );
 
 		if ( ! $year ) {
 			$year = (int) wp_date( 'Y' );
@@ -55,16 +66,18 @@ class WBCCP_Views {
 		}
 
 		return new WP_Query(
-			array(
-				'post_type'      => WBCCP_CPT::CPT,
-				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-				'meta_query'     => $meta_query,
-				'orderby'        => 'meta_value_num',
-				'order'          => 'ASC',
-				'meta_key'       => 'wbccp_start',
-			)
-		);
+				array(
+					'post_type'      => WBCCP_CPT::CPT,
+					'post_status'    => 'publish',
+					'posts_per_page' => -1,
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- required to filter events by date range/group.
+					'meta_query'     => $meta_query,
+					'orderby'        => 'meta_value_num',
+					'order'          => 'ASC',
+					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- ordering by start timestamp is intentional.
+					'meta_key'       => 'wbccp_start',
+				)
+			);
 	}
 
 	public static function render_view_toggle( $base_url, $context_id = '' ) {
@@ -73,11 +86,13 @@ class WBCCP_Views {
 		$list_panel_id = 'wbccp-view-' . $context_id . '-list';
 		$month_panel_id = 'wbccp-view-' . $context_id . '-month';
 		$filter_args = array();
-		if ( isset( $_GET['wbccp_category'] ) ) {
-			$filter_args['wbccp_category'] = absint( $_GET['wbccp_category'] );
+		$category = self::get_query_int( 'wbccp_category' );
+		if ( $category ) {
+			$filter_args['wbccp_category'] = $category;
 		}
-		if ( isset( $_GET['wbccp_tag'] ) ) {
-			$filter_args['wbccp_tag'] = sanitize_text_field( wp_unslash( $_GET['wbccp_tag'] ) );
+		$tag = self::get_query_text( 'wbccp_tag' );
+		if ( $tag ) {
+			$filter_args['wbccp_tag'] = $tag;
 		}
 		$list_url  = add_query_arg( array_merge( $filter_args, array( 'wbccp_view' => 'list' ) ), $base_url );
 		$month_url = add_query_arg( array_merge( $filter_args, array( 'wbccp_view' => 'month' ) ), $base_url );
@@ -137,11 +152,13 @@ class WBCCP_Views {
 		$next = (new DateTimeImmutable( sprintf( '%04d-%02d-01', $year, $month ), new DateTimeZone( 'UTC' ) ))->modify( '+1 month' );
 
 		$filter_args = array();
-		if ( isset( $_GET['wbccp_category'] ) ) {
-			$filter_args['wbccp_category'] = absint( $_GET['wbccp_category'] );
+		$category = self::get_query_int( 'wbccp_category' );
+		if ( $category ) {
+			$filter_args['wbccp_category'] = $category;
 		}
-		if ( isset( $_GET['wbccp_tag'] ) ) {
-			$filter_args['wbccp_tag'] = sanitize_text_field( wp_unslash( $_GET['wbccp_tag'] ) );
+		$tag = self::get_query_text( 'wbccp_tag' );
+		if ( $tag ) {
+			$filter_args['wbccp_tag'] = $tag;
 		}
 
 		$prev_url = add_query_arg(
@@ -184,7 +201,7 @@ class WBCCP_Views {
 		$counts_map = WBCCP_RSVP::get_counts_for_events( array_unique( $event_ids ) );
 
 		if ( ! $has_events ) {
-			echo self::render_empty_state( __( 'No events this month yet.', 'wb-community-calendar-pro' ) );
+			echo wp_kses_post( self::render_empty_state( __( 'No events this month yet.', 'wb-community-calendar-pro' ) ) );
 		}
 
 		echo '<div class="wbccp-calendar-wrap">';
