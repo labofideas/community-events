@@ -14,12 +14,58 @@ class WBCCP_Settings {
 		add_action( 'admin_init', array( __CLASS__, 'handle_demo_actions_from_get' ) );
 		add_action( 'admin_post_wbccp_generate_demo', array( __CLASS__, 'handle_generate_demo' ) );
 		add_action( 'admin_post_wbccp_delete_demo', array( __CLASS__, 'handle_delete_demo' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_settings_assets' ) );
+		add_filter( 'admin_body_class', array( __CLASS__, 'add_settings_body_class' ) );
+	}
+
+	public static function enqueue_settings_assets( $hook ) {
+		$allowed_hooks = array(
+			'settings_page_wbccp-settings',
+			'wb_community_event_page_wbccp-settings',
+		);
+		if ( ! in_array( $hook, $allowed_hooks, true ) ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'wbccp-settings',
+			WBCCP_URL . 'assets/css/wbccp-settings.css',
+			array(),
+			WBCCP_VERSION
+		);
+
+		wp_enqueue_script(
+			'wbccp-settings',
+			WBCCP_URL . 'assets/js/wbccp-settings.js',
+			array(),
+			WBCCP_VERSION,
+			true
+		);
+	}
+
+	public static function add_settings_body_class( $classes ) {
+		$page = filter_input( INPUT_GET, 'page', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
+		if ( 'wbccp-settings' === $page ) {
+			$classes .= ' wbccp-settings-admin';
+		}
+
+		return $classes;
 	}
 
 	public static function add_menu() {
 		add_options_page(
 			__( 'WB Community Calendar', 'wb-community-calendar-pro' ),
 			__( 'WB Community Calendar', 'wb-community-calendar-pro' ),
+			'manage_options',
+			'wbccp-settings',
+			array( __CLASS__, 'render_page' )
+		);
+
+		$parent_slug = 'edit.php?post_type=wb_community_event';
+		add_submenu_page(
+			$parent_slug,
+			__( 'Calendar Settings', 'wb-community-calendar-pro' ),
+			__( 'Settings', 'wb-community-calendar-pro' ),
 			'manage_options',
 			'wbccp-settings',
 			array( __CLASS__, 'render_page' )
@@ -76,6 +122,38 @@ class WBCCP_Settings {
 			'show_viewer_timezone',
 			__( 'Show Viewer Local Time', 'wb-community-calendar-pro' ),
 			array( __CLASS__, 'field_show_viewer_timezone' ),
+			'wbccp-settings',
+			'wbccp_general'
+		);
+
+		add_settings_field(
+			'event_slug',
+			__( 'Event URL Slug', 'wb-community-calendar-pro' ),
+			array( __CLASS__, 'field_event_slug' ),
+			'wbccp-settings',
+			'wbccp_general'
+		);
+
+		add_settings_field(
+			'event_singular_label',
+			__( 'Event Singular Label', 'wb-community-calendar-pro' ),
+			array( __CLASS__, 'field_event_singular_label' ),
+			'wbccp-settings',
+			'wbccp_general'
+		);
+
+		add_settings_field(
+			'event_plural_label',
+			__( 'Event Plural Label', 'wb-community-calendar-pro' ),
+			array( __CLASS__, 'field_event_plural_label' ),
+			'wbccp-settings',
+			'wbccp_general'
+		);
+
+		add_settings_field(
+			'brand_color',
+			__( 'Primary Brand Color', 'wb-community-calendar-pro' ),
+			array( __CLASS__, 'field_brand_color' ),
 			'wbccp-settings',
 			'wbccp_general'
 		);
@@ -168,6 +246,7 @@ class WBCCP_Settings {
 	}
 
 	public static function sanitize_settings( $input ) {
+		$current = self::get_settings();
 		$output = array();
 		$output['allow_member_events'] = empty( $input['allow_member_events'] ) ? 0 : 1;
 		$output['moderation_required'] = empty( $input['moderation_required'] ) ? 0 : 1;
@@ -195,6 +274,26 @@ class WBCCP_Settings {
 		$output['notify_reminder_day'] = empty( $input['notify_reminder_day'] ) ? 0 : 1;
 		$output['notify_reminder_hour'] = empty( $input['notify_reminder_hour'] ) ? 0 : 1;
 		$output['reminder_include_maybe'] = empty( $input['reminder_include_maybe'] ) ? 0 : 1;
+		$output['event_slug'] = isset( $input['event_slug'] ) ? sanitize_title( wp_unslash( $input['event_slug'] ) ) : 'community-event';
+		if ( empty( $output['event_slug'] ) ) {
+			$output['event_slug'] = 'community-event';
+		}
+		$output['event_singular_label'] = isset( $input['event_singular_label'] ) ? sanitize_text_field( $input['event_singular_label'] ) : __( 'Community Event', 'wb-community-calendar-pro' );
+		if ( '' === $output['event_singular_label'] ) {
+			$output['event_singular_label'] = __( 'Community Event', 'wb-community-calendar-pro' );
+		}
+		$output['event_plural_label'] = isset( $input['event_plural_label'] ) ? sanitize_text_field( $input['event_plural_label'] ) : __( 'Community Events', 'wb-community-calendar-pro' );
+		if ( '' === $output['event_plural_label'] ) {
+			$output['event_plural_label'] = __( 'Community Events', 'wb-community-calendar-pro' );
+		}
+		$brand_color = isset( $input['brand_color'] ) ? sanitize_hex_color( $input['brand_color'] ) : '';
+		$output['brand_color'] = $brand_color ? $brand_color : '#2563eb';
+
+		if ( $current['event_slug'] !== $output['event_slug'] && class_exists( 'WBCCP_CPT' ) ) {
+			WBCCP_CPT::register_cpt();
+			WBCCP_CPT::register_taxonomies();
+			flush_rewrite_rules();
+		}
 
 		return $output;
 	}
@@ -214,6 +313,10 @@ class WBCCP_Settings {
 			'notify_reminder_day' => 1,
 			'notify_reminder_hour' => 1,
 			'reminder_include_maybe' => 1,
+			'event_slug'          => 'community-event',
+			'event_singular_label' => __( 'Community Event', 'wb-community-calendar-pro' ),
+			'event_plural_label'  => __( 'Community Events', 'wb-community-calendar-pro' ),
+			'brand_color'         => '#2563eb',
 		);
 
 		$settings = get_option( self::OPTION_NAME, array() );
@@ -268,6 +371,46 @@ class WBCCP_Settings {
 			<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[show_viewer_timezone]" value="1" <?php checked( 1, $settings['show_viewer_timezone'] ); ?> />
 			<?php esc_html_e( 'Show the viewer’s local time on event pages and lists.', 'wb-community-calendar-pro' ); ?>
 		</label>
+		<?php
+	}
+
+	public static function field_event_slug() {
+		$settings = self::get_settings();
+		?>
+		<input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[event_slug]" value="<?php echo esc_attr( $settings['event_slug'] ); ?>" />
+		<p class="description">
+			<?php esc_html_e( 'Controls event URL base. Example: /community-event/my-event/. Use lowercase letters, numbers, and hyphens only.', 'wb-community-calendar-pro' ); ?>
+		</p>
+		<?php
+	}
+
+	public static function field_event_singular_label() {
+		$settings = self::get_settings();
+		?>
+		<input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[event_singular_label]" value="<?php echo esc_attr( $settings['event_singular_label'] ); ?>" />
+		<p class="description">
+			<?php esc_html_e( 'Example: Event, Session, Meetup.', 'wb-community-calendar-pro' ); ?>
+		</p>
+		<?php
+	}
+
+	public static function field_event_plural_label() {
+		$settings = self::get_settings();
+		?>
+		<input type="text" class="regular-text" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[event_plural_label]" value="<?php echo esc_attr( $settings['event_plural_label'] ); ?>" />
+		<p class="description">
+			<?php esc_html_e( 'Example: Events, Sessions, Meetups.', 'wb-community-calendar-pro' ); ?>
+		</p>
+		<?php
+	}
+
+	public static function field_brand_color() {
+		$settings = self::get_settings();
+		?>
+		<input type="color" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[brand_color]" value="<?php echo esc_attr( $settings['brand_color'] ); ?>" />
+		<p class="description">
+			<?php esc_html_e( 'Applies to buttons and highlights on event pages.', 'wb-community-calendar-pro' ); ?>
+		</p>
 		<?php
 	}
 
@@ -368,47 +511,75 @@ class WBCCP_Settings {
 		$status = filter_input( INPUT_GET, 'wbccp_demo', FILTER_SANITIZE_FULL_SPECIAL_CHARS );
 		$status = $status ? sanitize_key( $status ) : '';
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'WB Community Calendar Settings', 'wb-community-calendar-pro' ); ?></h1>
-			<?php if ( $status ) : ?>
-				<?php if ( 'generated' === $status ) : ?>
-					<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Demo data generated successfully.', 'wb-community-calendar-pro' ); ?></p></div>
-				<?php elseif ( 'deleted' === $status ) : ?>
-					<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Demo data deleted successfully.', 'wb-community-calendar-pro' ); ?></p></div>
-				<?php elseif ( 'no-demo' === $status ) : ?>
-					<div class="notice notice-warning is-dismissible"><p><?php esc_html_e( 'No demo data found to delete.', 'wb-community-calendar-pro' ); ?></p></div>
-				<?php elseif ( 'exists' === $status ) : ?>
-					<div class="notice notice-warning is-dismissible"><p><?php esc_html_e( 'Demo data already exists. Please delete it before generating again.', 'wb-community-calendar-pro' ); ?></p></div>
-				<?php elseif ( 'error' === $status ) : ?>
-					<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'Demo action failed. Please check server logs.', 'wb-community-calendar-pro' ); ?></p></div>
+		<div class="wrap wbccp-settings-page">
+			<div class="wbccp-settings-shell">
+				<header class="wbccp-settings-hero">
+					<div class="wbccp-settings-hero__copy">
+						<p class="wbccp-settings-kicker"><?php esc_html_e( 'WB Community Calendar Pro', 'wb-community-calendar-pro' ); ?></p>
+						<h1><?php esc_html_e( 'Settings', 'wb-community-calendar-pro' ); ?></h1>
+						<p><?php esc_html_e( 'Configure events, moderation, timezone behavior, and notification automation from one polished control center.', 'wb-community-calendar-pro' ); ?></p>
+					</div>
+					<div class="wbccp-settings-hero__actions">
+						<a class="button button-secondary" href="#wbccp-demo-card"><?php esc_html_e( 'Open Demo Tools', 'wb-community-calendar-pro' ); ?></a>
+					</div>
+				</header>
+
+				<?php if ( $status ) : ?>
+					<?php if ( 'generated' === $status ) : ?>
+						<div class="notice notice-success is-dismissible wbccp-settings-notice"><p><?php esc_html_e( 'Demo data generated successfully.', 'wb-community-calendar-pro' ); ?></p></div>
+					<?php elseif ( 'deleted' === $status ) : ?>
+						<div class="notice notice-success is-dismissible wbccp-settings-notice"><p><?php esc_html_e( 'Demo data deleted successfully.', 'wb-community-calendar-pro' ); ?></p></div>
+					<?php elseif ( 'no-demo' === $status ) : ?>
+						<div class="notice notice-warning is-dismissible wbccp-settings-notice"><p><?php esc_html_e( 'No demo data found to delete.', 'wb-community-calendar-pro' ); ?></p></div>
+					<?php elseif ( 'exists' === $status ) : ?>
+						<div class="notice notice-warning is-dismissible wbccp-settings-notice"><p><?php esc_html_e( 'Demo data already exists. Please delete it before generating again.', 'wb-community-calendar-pro' ); ?></p></div>
+					<?php elseif ( 'error' === $status ) : ?>
+						<div class="notice notice-error is-dismissible wbccp-settings-notice"><p><?php esc_html_e( 'Demo action failed. Please check server logs.', 'wb-community-calendar-pro' ); ?></p></div>
+					<?php endif; ?>
 				<?php endif; ?>
-			<?php endif; ?>
-			<form method="post" action="options.php">
-				<?php
-				settings_fields( self::OPTION_GROUP );
-				do_settings_sections( 'wbccp-settings' );
-				submit_button();
-				?>
-			</form>
-			<hr />
-			<h2><?php esc_html_e( 'Demo Data', 'wb-community-calendar-pro' ); ?></h2>
-			<p><?php esc_html_e( 'Generate sample BuddyPress groups and events for testing. You can delete them anytime.', 'wb-community-calendar-pro' ); ?></p>
-			<p><strong><?php esc_html_e( 'Demo login:', 'wb-community-calendar-pro' ); ?></strong> eventmember / EventMember123!</p>
-			<?php
-			$action_url = admin_url( 'admin-post.php' );
-			?>
-			<p>
-				<form method="post" action="<?php echo esc_url( $action_url ); ?>" style="display:inline-block;margin-right:8px;">
-					<input type="hidden" name="action" value="wbccp_generate_demo" />
-					<?php wp_nonce_field( 'wbccp_generate_demo', 'wbccp_demo_nonce' ); ?>
-					<button type="submit" class="button button-secondary"><?php esc_html_e( 'Generate Demo Data', 'wb-community-calendar-pro' ); ?></button>
-				</form>
-				<form method="post" action="<?php echo esc_url( $action_url ); ?>" style="display:inline-block;">
-					<input type="hidden" name="action" value="wbccp_delete_demo" />
-					<?php wp_nonce_field( 'wbccp_delete_demo', 'wbccp_demo_nonce' ); ?>
-					<button type="submit" class="button button-secondary<?php echo $has_demo ? '' : ' disabled'; ?>"<?php echo $has_demo ? '' : ' disabled'; ?>><?php esc_html_e( 'Delete Demo Data', 'wb-community-calendar-pro' ); ?></button>
-				</form>
-			</p>
+
+				<nav class="wbccp-settings-nav" aria-label="<?php esc_attr_e( 'Settings sections', 'wb-community-calendar-pro' ); ?>"></nav>
+
+				<div class="wbccp-settings-layout">
+					<div class="wbccp-settings-main">
+						<form method="post" action="options.php" class="wbccp-settings-form">
+							<?php
+							settings_fields( self::OPTION_GROUP );
+							?>
+							<div class="wbccp-settings-panels">
+								<?php do_settings_sections( 'wbccp-settings' ); ?>
+							</div>
+							<div class="wbccp-settings-submit">
+								<?php submit_button( __( 'Save Settings', 'wb-community-calendar-pro' ), 'primary', 'submit', false ); ?>
+							</div>
+						</form>
+					</div>
+
+					<aside class="wbccp-settings-aside">
+						<section id="wbccp-demo-card" class="wbccp-settings-card">
+							<h2><?php esc_html_e( 'Demo Data', 'wb-community-calendar-pro' ); ?></h2>
+							<p><?php esc_html_e( 'Generate sample BuddyPress groups and events for testing. You can delete them anytime.', 'wb-community-calendar-pro' ); ?></p>
+							<p><strong><?php esc_html_e( 'Demo login:', 'wb-community-calendar-pro' ); ?></strong> eventmember</p>
+							<p class="description"><?php esc_html_e( 'A random password is generated when the demo account is created. Use “Lost your password?” to set a new one if needed.', 'wb-community-calendar-pro' ); ?></p>
+							<?php
+							$action_url = admin_url( 'admin-post.php' );
+							?>
+							<div class="wbccp-demo-actions">
+								<form method="post" action="<?php echo esc_url( $action_url ); ?>">
+									<input type="hidden" name="action" value="wbccp_generate_demo" />
+									<?php wp_nonce_field( 'wbccp_generate_demo', 'wbccp_demo_nonce' ); ?>
+									<button type="submit" class="button button-secondary"><?php esc_html_e( 'Generate Demo Data', 'wb-community-calendar-pro' ); ?></button>
+								</form>
+								<form method="post" action="<?php echo esc_url( $action_url ); ?>">
+									<input type="hidden" name="action" value="wbccp_delete_demo" />
+									<?php wp_nonce_field( 'wbccp_delete_demo', 'wbccp_demo_nonce' ); ?>
+									<button type="submit" class="button button-secondary<?php echo $has_demo ? '' : ' disabled'; ?>"<?php echo $has_demo ? '' : ' disabled'; ?>><?php esc_html_e( 'Delete Demo Data', 'wb-community-calendar-pro' ); ?></button>
+								</form>
+							</div>
+						</section>
+					</aside>
+				</div>
+			</div>
 		</div>
 		<?php
 	}
@@ -899,7 +1070,7 @@ class WBCCP_Settings {
 				'user_login'   => $login,
 				'user_email'   => $email,
 				'display_name' => __( 'Event Member', 'wb-community-calendar-pro' ),
-				'user_pass'    => 'EventMember123!',
+				'user_pass'    => wp_generate_password( 20, true, true ),
 				'role'         => 'subscriber',
 			)
 		);

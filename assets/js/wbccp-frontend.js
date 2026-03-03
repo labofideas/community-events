@@ -74,13 +74,30 @@
 				var maybe = block.querySelector('[data-count="maybe"]');
 				var cant = block.querySelector('[data-count="cant"]');
 				if (attending) {
-					attending.textContent = 'Attending: ' + (counts.attending || 0);
+					if (attending.classList.contains('wbccp-rsvp-stat__value')) {
+						attending.textContent = String(counts.attending || 0);
+					} else {
+						attending.textContent = 'Attending: ' + (counts.attending || 0);
+					}
 				}
 				if (maybe) {
-					maybe.textContent = 'Maybe: ' + (counts.maybe || 0);
+					if (maybe.classList.contains('wbccp-rsvp-stat__value')) {
+						maybe.textContent = String(counts.maybe || 0);
+					} else {
+						maybe.textContent = 'Maybe: ' + (counts.maybe || 0);
+					}
 				}
 				if (cant) {
-					cant.textContent = "Can't: " + (counts.cant || 0);
+					if (cant.classList.contains('wbccp-rsvp-stat__value')) {
+						cant.textContent = String(counts.cant || 0);
+					} else {
+						cant.textContent = "Can't: " + (counts.cant || 0);
+					}
+				}
+				var card = block.closest('.wbccp-event-rsvp');
+				var total = card ? card.querySelector('[data-count="total"]') : null;
+				if (total) {
+					total.textContent = String((counts.attending || 0) + (counts.maybe || 0) + (counts.cant || 0));
 				}
 			});
 		}
@@ -105,6 +122,30 @@
 			if (!eventId) {
 				return;
 			}
+			var statusLabels = {
+				attending: 'Attending',
+				maybe: 'Maybe',
+				cant: 'Cannot attend'
+			};
+			var statusText = status ? (statusLabels[status] || status) : '';
+			var forms = document.querySelectorAll('.wbccp-event-rsvp-actions[data-event-id="' + eventId + '"]');
+			forms.forEach(function(form) {
+				var card = form.closest('.wbccp-event-rsvp');
+				if (!card) {
+					return;
+				}
+				var badge = card.querySelector('[data-current-status]');
+				if (!badge) {
+					return;
+				}
+				if (statusText) {
+					badge.textContent = 'Your status: ' + statusText;
+					badge.classList.remove('is-empty');
+				} else {
+					badge.textContent = 'No RSVP yet';
+					badge.classList.add('is-empty');
+				}
+			});
 			var badge = document.querySelector('.wbccp-event-rsvp[data-event-id="' + eventId + '"]');
 			if (badge) {
 				badge.textContent = status ? status.toUpperCase() : '';
@@ -219,16 +260,31 @@
 		if (!elements.length) {
 			return;
 		}
-		var formatter = null;
+		var dateFormatter = null;
+		var timeFormatter = null;
+		var dateTimeFormatter = null;
 		if (window.Intl && Intl.DateTimeFormat) {
 			try {
-				formatter = new Intl.DateTimeFormat(undefined, {
-					dateStyle: 'medium',
-					timeStyle: 'short',
-					timeZoneName: 'short'
+				dateFormatter = new Intl.DateTimeFormat(undefined, {
+					year: 'numeric',
+					month: 'short',
+					day: 'numeric'
+				});
+				timeFormatter = new Intl.DateTimeFormat(undefined, {
+					hour: 'numeric',
+					minute: '2-digit'
+				});
+				dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
+					year: 'numeric',
+					month: 'short',
+					day: 'numeric',
+					hour: 'numeric',
+					minute: '2-digit'
 				});
 			} catch (e) {
-				formatter = null;
+				dateFormatter = null;
+				timeFormatter = null;
+				dateTimeFormatter = null;
 			}
 		}
 
@@ -239,12 +295,19 @@
 			}
 			var end = parseInt(el.getAttribute('data-end-ts') || '0', 10);
 			var startDate = new Date(start * 1000);
-			var startText = formatter ? formatter.format(startDate) : startDate.toLocaleString();
-			var text = startText;
+			var startDateText = dateFormatter ? dateFormatter.format(startDate) : startDate.toLocaleDateString();
+			var startTimeText = timeFormatter ? timeFormatter.format(startDate) : startDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+			var text = startDateText + ' • ' + startTimeText;
 			if (end) {
 				var endDate = new Date(end * 1000);
-				var endText = formatter ? formatter.format(endDate) : endDate.toLocaleString();
-				text = startText + ' – ' + endText;
+				var endTimeText = timeFormatter ? timeFormatter.format(endDate) : endDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+				var sameDay = startDate.getFullYear() === endDate.getFullYear() && startDate.getMonth() === endDate.getMonth() && startDate.getDate() === endDate.getDate();
+				if (sameDay) {
+					text = startDateText + ' • ' + startTimeText + ' - ' + endTimeText;
+				} else {
+					var endText = dateTimeFormatter ? dateTimeFormatter.format(endDate) : endDate.toLocaleString();
+					text = (dateTimeFormatter ? dateTimeFormatter.format(startDate) : startDate.toLocaleString()) + ' - ' + endText;
+				}
 			}
 			el.textContent = text;
 		});

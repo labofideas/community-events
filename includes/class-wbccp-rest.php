@@ -90,6 +90,10 @@ class WBCCP_REST {
 		$payload = array();
 		foreach ( $occurrences as $occurrence ) {
 			$event_id = (int) $occurrence['event_id'];
+			$event_group_id = (int) get_post_meta( $event_id, 'wbccp_group_id', true );
+			if ( ! WBCCP_CPT::can_view_group_calendar( $event_group_id ) ) {
+				continue;
+			}
 			$categories = wp_get_post_terms( $event_id, WBCCP_CPT::TAX_CATEGORY, array( 'fields' => 'names' ) );
 			$tags = wp_get_post_terms( $event_id, WBCCP_CPT::TAX_TAG, array( 'fields' => 'names' ) );
 			$payload[] = array(
@@ -97,7 +101,7 @@ class WBCCP_REST {
 				'title'     => get_the_title( $event_id ),
 				'start'     => (int) $occurrence['start'],
 				'end'       => (int) $occurrence['end'],
-				'group_id'  => (int) get_post_meta( $event_id, 'wbccp_group_id', true ),
+				'group_id'  => $event_group_id,
 				'location'  => get_post_meta( $event_id, 'wbccp_location', true ),
 				'link'      => get_post_meta( $event_id, 'wbccp_link', true ),
 				'timezone'  => get_post_meta( $event_id, 'wbccp_timezone', true ),

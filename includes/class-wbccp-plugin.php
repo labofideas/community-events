@@ -61,6 +61,15 @@ class WBCCP_Plugin {
 			WBCCP_VERSION
 		);
 
+		$settings = class_exists( 'WBCCP_Settings' ) ? WBCCP_Settings::get_settings() : array();
+		$brand_color = ! empty( $settings['brand_color'] ) ? sanitize_hex_color( $settings['brand_color'] ) : '';
+		if ( ! $brand_color ) {
+			$brand_color = '#2563eb';
+		}
+		$brand_rgb = self::hex_to_rgb( $brand_color );
+		$inline_css = ':root{--wbccp-accent:' . esc_attr( $brand_color ) . ';--wbccp-accent-rgb:' . esc_attr( $brand_rgb ) . ';}';
+		wp_add_inline_style( 'wbccp-frontend', $inline_css );
+
 		wp_enqueue_script(
 			'wbccp-frontend',
 			WBCCP_URL . 'assets/js/wbccp-frontend.js',
@@ -81,6 +90,25 @@ class WBCCP_Plugin {
 					'error'   => __( 'Unable to save RSVP right now.', 'wb-community-calendar-pro' ),
 					'login'   => __( 'Please log in to RSVP.', 'wb-community-calendar-pro' ),
 				),
+			)
+		);
+	}
+
+	private static function hex_to_rgb( $hex ) {
+		$hex = ltrim( (string) $hex, '#' );
+		if ( 3 === strlen( $hex ) ) {
+			$hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+		}
+		if ( 6 !== strlen( $hex ) ) {
+			return '37,99,235';
+		}
+
+		return implode(
+			',',
+			array(
+				hexdec( substr( $hex, 0, 2 ) ),
+				hexdec( substr( $hex, 2, 2 ) ),
+				hexdec( substr( $hex, 4, 2 ) ),
 			)
 		);
 	}

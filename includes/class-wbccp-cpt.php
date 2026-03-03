@@ -8,6 +8,7 @@ class WBCCP_CPT {
 	const CPT = 'wb_community_event';
 	const TAX_CATEGORY = 'wbccp_event_category';
 	const TAX_TAG = 'wbccp_event_tag';
+	const MAX_EVENT_QUERY = 300;
 	private static $validation_errors = array();
 
 	public static function init() {
@@ -28,20 +29,36 @@ class WBCCP_CPT {
 	}
 
 	public static function register_cpt() {
+		$settings = class_exists( 'WBCCP_Settings' ) ? WBCCP_Settings::get_settings() : array();
+		$singular_label = ! empty( $settings['event_singular_label'] ) ? $settings['event_singular_label'] : __( 'Community Event', 'wb-community-calendar-pro' );
+		$plural_label = ! empty( $settings['event_plural_label'] ) ? $settings['event_plural_label'] : __( 'Community Events', 'wb-community-calendar-pro' );
+		$event_slug = ! empty( $settings['event_slug'] ) ? sanitize_title( $settings['event_slug'] ) : 'community-event';
+		if ( '' === $event_slug ) {
+			$event_slug = 'community-event';
+		}
+
 		$labels = array(
-			'name'               => __( 'Community Events', 'wb-community-calendar-pro' ),
-			'singular_name'      => __( 'Community Event', 'wb-community-calendar-pro' ),
+			'name'               => $plural_label,
+			'singular_name'      => $singular_label,
 			'add_new'            => __( 'Add New', 'wb-community-calendar-pro' ),
-			'add_new_item'       => __( 'Add New Event', 'wb-community-calendar-pro' ),
-			'edit_item'          => __( 'Edit Event', 'wb-community-calendar-pro' ),
-			'new_item'           => __( 'New Event', 'wb-community-calendar-pro' ),
-			'view_item'          => __( 'View Event', 'wb-community-calendar-pro' ),
-			'view_items'         => __( 'View Events', 'wb-community-calendar-pro' ),
-			'search_items'       => __( 'Search Events', 'wb-community-calendar-pro' ),
-			'not_found'          => __( 'No events found.', 'wb-community-calendar-pro' ),
-			'not_found_in_trash' => __( 'No events found in Trash.', 'wb-community-calendar-pro' ),
-			'all_items'          => __( 'Community Events', 'wb-community-calendar-pro' ),
-			'menu_name'          => __( 'Community Events', 'wb-community-calendar-pro' ),
+			/* translators: %s: event singular label. */
+			'add_new_item'       => sprintf( __( 'Add New %s', 'wb-community-calendar-pro' ), $singular_label ),
+			/* translators: %s: event singular label. */
+			'edit_item'          => sprintf( __( 'Edit %s', 'wb-community-calendar-pro' ), $singular_label ),
+			/* translators: %s: event singular label. */
+			'new_item'           => sprintf( __( 'New %s', 'wb-community-calendar-pro' ), $singular_label ),
+			/* translators: %s: event singular label. */
+			'view_item'          => sprintf( __( 'View %s', 'wb-community-calendar-pro' ), $singular_label ),
+			/* translators: %s: event plural label. */
+			'view_items'         => sprintf( __( 'View %s', 'wb-community-calendar-pro' ), $plural_label ),
+			/* translators: %s: event plural label. */
+			'search_items'       => sprintf( __( 'Search %s', 'wb-community-calendar-pro' ), $plural_label ),
+			/* translators: %s: event plural label in lowercase. */
+			'not_found'          => sprintf( __( 'No %s found.', 'wb-community-calendar-pro' ), strtolower( $plural_label ) ),
+			/* translators: %s: event plural label in lowercase. */
+			'not_found_in_trash' => sprintf( __( 'No %s found in Trash.', 'wb-community-calendar-pro' ), strtolower( $plural_label ) ),
+			'all_items'          => $plural_label,
+			'menu_name'          => $plural_label,
 		);
 
 		$args = array(
@@ -59,7 +76,7 @@ class WBCCP_CPT {
 			'supports'           => array( 'title', 'editor', 'thumbnail' ),
 			'has_archive'        => false,
 			'rewrite'            => array(
-				'slug'       => 'community-event',
+				'slug'       => $event_slug,
 				'with_front' => false,
 			),
 		);
@@ -68,6 +85,12 @@ class WBCCP_CPT {
 	}
 
 	public static function register_taxonomies() {
+		$settings = class_exists( 'WBCCP_Settings' ) ? WBCCP_Settings::get_settings() : array();
+		$event_slug = ! empty( $settings['event_slug'] ) ? sanitize_title( $settings['event_slug'] ) : 'community-event';
+		if ( '' === $event_slug ) {
+			$event_slug = 'community-event';
+		}
+
 		$category_labels = array(
 			'name'              => __( 'Event Categories', 'wb-community-calendar-pro' ),
 			'singular_name'     => __( 'Event Category', 'wb-community-calendar-pro' ),
@@ -91,7 +114,7 @@ class WBCCP_CPT {
 				'show_ui'           => true,
 				'show_in_rest'      => true,
 				'show_admin_column' => true,
-				'rewrite'           => array( 'slug' => 'community-event-category' ),
+				'rewrite'           => array( 'slug' => $event_slug . '-category' ),
 			)
 		);
 
@@ -120,7 +143,7 @@ class WBCCP_CPT {
 				'show_ui'           => true,
 				'show_in_rest'      => true,
 				'show_admin_column' => true,
-				'rewrite'           => array( 'slug' => 'community-event-tag' ),
+				'rewrite'           => array( 'slug' => $event_slug . '-tag' ),
 			)
 		);
 	}
@@ -415,11 +438,18 @@ class WBCCP_CPT {
 			return;
 		}
 
+		$settings_url = admin_url( 'options-general.php?page=wbccp-settings' );
+		$list_url = admin_url( 'edit.php?post_type=' . self::CPT );
+
 		echo '<div class="wbccp-event-header">';
 		echo '<div class="wbccp-event-header__icon"><span class="dashicons dashicons-calendar-alt"></span></div>';
 		echo '<div class="wbccp-event-header__content">';
 		echo '<h1>' . esc_html__( 'Create Community Event', 'wb-community-calendar-pro' ) . '</h1>';
 		echo '<p>' . esc_html__( 'Add the essentials, set the schedule, and publish to your group calendar.', 'wb-community-calendar-pro' ) . '</p>';
+		echo '</div>';
+		echo '<div class="wbccp-event-header__actions">';
+		echo '<a class="button button-secondary" href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Calendar Settings', 'wb-community-calendar-pro' ) . '</a>';
+		echo '<a class="button" href="' . esc_url( $list_url ) . '">' . esc_html__( 'All Events', 'wb-community-calendar-pro' ) . '</a>';
 		echo '</div>';
 		echo '</div>';
 	}
@@ -613,6 +643,9 @@ class WBCCP_CPT {
 			$event = get_post( $event_id );
 			if ( ! $event || self::CPT !== $event->post_type ) {
 				wp_die( esc_html__( 'Event not found.', 'wb-community-calendar-pro' ) );
+			}
+			if ( 'publish' !== $event->post_status && ! current_user_can( 'edit_post', $event_id ) ) {
+				wp_die( esc_html__( 'Unauthorized.', 'wb-community-calendar-pro' ) );
 			}
 			$group_id = (int) get_post_meta( $event_id, 'wbccp_group_id', true );
 			if ( ! self::can_view_group_calendar( $group_id ) ) {
@@ -1261,6 +1294,11 @@ class WBCCP_CPT {
 	}
 
 	public static function get_group_occurrences( $group_id, $range_start, $range_end, $scope = 'all', $tax_query = array() ) {
+		$max_events = (int) apply_filters( 'wbccp_max_events_query', self::MAX_EVENT_QUERY );
+		if ( $max_events < 1 ) {
+			$max_events = self::MAX_EVENT_QUERY;
+		}
+
 		$meta_query = array();
 		if ( $group_id ) {
 			$meta_query[] = array(
@@ -1279,17 +1317,19 @@ class WBCCP_CPT {
 			array(
 				'post_type'      => self::CPT,
 				'post_status'    => 'publish',
-				'posts_per_page' => -1,
-					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- required filtering by group/sitewide scope.
-					'meta_query'     => $meta_query,
-					// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- optional taxonomy filters are user-driven.
-					'tax_query'      => $tax_query,
+				'posts_per_page' => $max_events,
+				'no_found_rows'  => true,
+				'fields'         => 'ids',
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- required filtering by group/sitewide scope.
+						'meta_query'     => $meta_query,
+						// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_tax_query -- optional taxonomy filters are user-driven.
+						'tax_query'      => $tax_query,
 			)
 		);
 
 		$items = array();
-		foreach ( $query->posts as $event ) {
-			$event_id = $event->ID;
+		foreach ( $query->posts as $event_id ) {
+			$event_id = (int) $event_id;
 			$duration = (int) get_post_meta( $event_id, 'wbccp_end', true ) - (int) get_post_meta( $event_id, 'wbccp_start', true );
 			if ( $duration < 0 ) {
 				$duration = 0;

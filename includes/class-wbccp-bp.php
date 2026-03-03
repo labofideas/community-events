@@ -903,24 +903,25 @@ class WBCCP_BP {
 	}
 }
 
-class WBCCP_Group_Extension extends BP_Group_Extension {
-	public function __construct() {
-		$args = array(
-			'slug'              => 'community-calendar',
-			'name'              => __( 'Events', 'wb-community-calendar-pro' ),
-			'nav_item_position' => 35,
-			'enable_create_step'=> false,
-			'enable_edit_item'  => false,
-			'show_tab'          => true,
-		);
+if ( class_exists( 'BP_Group_Extension' ) ) {
+	class WBCCP_Group_Extension extends BP_Group_Extension {
+		public function __construct() {
+			$args = array(
+				'slug'              => 'community-calendar',
+				'name'              => __( 'Events', 'wb-community-calendar-pro' ),
+				'nav_item_position' => 35,
+				'enable_create_step'=> false,
+				'enable_edit_item'  => false,
+				'show_tab'          => true,
+			);
 
-		parent::init( $args );
-	}
-
-	public function display( $group_id = null ) {
-		if ( ! $group_id && function_exists( 'bp_get_current_group_id' ) ) {
-			$group_id = bp_get_current_group_id();
+			parent::init( $args );
 		}
+
+		public function display( $group_id = null ) {
+			if ( ! $group_id && function_exists( 'bp_get_current_group_id' ) ) {
+				$group_id = bp_get_current_group_id();
+			}
 
 		if ( ! $group_id ) {
 			echo esc_html__( 'Group not found.', 'wb-community-calendar-pro' );
@@ -1352,9 +1353,10 @@ class WBCCP_Group_Extension extends BP_Group_Extension {
 			}
 			echo '</div>';
 		}
-		echo '</div>';
+			echo '</div>';
 
-		echo '</div>';
-		echo '</div>';
+			echo '</div>';
+			echo '</div>';
+		}
 	}
 }

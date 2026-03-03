@@ -1,0 +1,249 @@
+body.wbccp-settings-admin {
+	--wbccp-bg: #f2f5fb;
+	--wbccp-surface: #ffffff;
+	--wbccp-border: #d9e2f0;
+	--wbccp-heading: #0f172a;
+	--wbccp-text: #334155;
+	--wbccp-muted: #64748b;
+	--wbccp-accent: #0d9488;
+	--wbccp-accent-soft: rgba(13, 148, 136, 0.12);
+}
+
+body.wbccp-settings-admin #wpcontent {
+	background: radial-gradient(circle at 10% 0%, #e7f0ff 0%, transparent 30%), var(--wbccp-bg);
+}
+
+.wbccp-settings-page {
+	max-width: 1400px;
+}
+
+/* Keep WBCCP notices visible and suppress global third-party notices on this screen. */
+body.wbccp-settings-admin .wbccp-settings-page > .notice:not(.wbccp-settings-notice):not(.settings-error) {
+	display: none;
+}
+
+.wbccp-settings-shell {
+	padding: 12px 12px 28px;
+}
+
+.wbccp-settings-hero {
+	display: flex;
+	justify-content: space-between;
+	gap: 18px;
+	padding: 22px 24px;
+	margin-bottom: 16px;
+	border-radius: 18px;
+	border: 1px solid #cfdbee;
+	background: linear-gradient(120deg, #f5f9ff 0%, #ffffff 55%, #eefcf8 100%);
+	box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+}
+
+.wbccp-settings-kicker {
+	margin: 0 0 6px;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-size: 11px;
+	font-weight: 700;
+	color: #0c4a6e;
+}
+
+.wbccp-settings-hero h1 {
+	margin: 0;
+	font-size: 30px;
+	color: var(--wbccp-heading);
+}
+
+.wbccp-settings-hero p {
+	margin: 8px 0 0;
+	max-width: 680px;
+	color: var(--wbccp-text);
+}
+
+.wbccp-settings-hero__actions {
+	display: flex;
+	align-items: flex-start;
+}
+
+.wbccp-settings-nav {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 16px;
+	padding: 4px 0;
+}
+
+.wbccp-settings-nav a {
+	display: inline-flex;
+	align-items: center;
+	height: 32px;
+	padding: 0 12px;
+	border-radius: 999px;
+	border: 1px solid #d3deee;
+	background: #fff;
+	color: #334155;
+	text-decoration: none;
+	font-weight: 600;
+	font-size: 12px;
+	transition: all 0.2s ease;
+}
+
+.wbccp-settings-nav a:hover,
+.wbccp-settings-nav a.is-active {
+	border-color: #0d9488;
+	background: var(--wbccp-accent-soft);
+	color: #0f766e;
+}
+
+.wbccp-settings-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 320px;
+	gap: 18px;
+}
+
+.wbccp-settings-main,
+.wbccp-settings-aside {
+	min-width: 0;
+}
+
+.wbccp-settings-form .notice {
+	border-radius: 12px;
+	border-left-width: 4px;
+}
+
+.wbccp-settings-card,
+.wbccp-settings-section {
+	border: 1px solid var(--wbccp-border);
+	border-radius: 14px;
+	background: var(--wbccp-surface);
+	box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.wbccp-settings-panels {
+	display: grid;
+	gap: 14px;
+}
+
+.wbccp-settings-section {
+	padding: 16px 18px;
+	opacity: 0;
+	transform: translateY(10px);
+	transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+.wbccp-settings-section.is-visible {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.wbccp-settings-section h2 {
+	margin: 0 0 10px;
+	font-size: 16px;
+	font-weight: 700;
+	color: var(--wbccp-heading);
+}
+
+.wbccp-settings-form .form-table {
+	margin: 0;
+}
+
+.wbccp-settings-form .form-table th,
+.wbccp-settings-form .form-table td {
+	padding: 12px 6px;
+	border-top: 1px solid #edf2fa;
+}
+
+.wbccp-settings-form .form-table tr:first-child th,
+.wbccp-settings-form .form-table tr:first-child td {
+	border-top: 0;
+}
+
+.wbccp-settings-form .form-table th {
+	width: 280px;
+	color: var(--wbccp-heading);
+	font-weight: 600;
+}
+
+.wbccp-settings-form .form-table td label {
+	color: var(--wbccp-text);
+}
+
+.wbccp-settings-form .form-table input[type="text"] {
+	width: 380px;
+	max-width: 100%;
+	border-color: #cdd8ea;
+	border-radius: 8px;
+	padding: 7px 10px;
+}
+
+.wbccp-settings-form .description {
+	color: var(--wbccp-muted);
+}
+
+.wbccp-settings-submit {
+	position: sticky;
+	bottom: 0;
+	z-index: 5;
+	margin-top: 14px;
+	padding: 12px;
+	border: 1px solid var(--wbccp-border);
+	border-radius: 12px;
+	background: rgba(255, 255, 255, 0.94);
+	backdrop-filter: blur(6px);
+}
+
+.wbccp-settings-submit .button-primary {
+	min-height: 36px;
+	padding: 0 16px;
+	border-radius: 8px;
+}
+
+.wbccp-settings-card {
+	padding: 16px;
+	position: sticky;
+	top: 40px;
+}
+
+.wbccp-settings-card h2 {
+	margin-top: 0;
+	margin-bottom: 8px;
+	font-size: 17px;
+}
+
+.wbccp-demo-actions {
+	display: grid;
+	gap: 8px;
+	margin-top: 12px;
+}
+
+.wbccp-demo-actions form {
+	margin: 0;
+}
+
+.wbccp-demo-actions .button {
+	width: 100%;
+	justify-content: center;
+}
+
+@media (max-width: 1200px) {
+	.wbccp-settings-layout {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.wbccp-settings-card {
+		position: static;
+	}
+}
+
+@media (max-width: 782px) {
+	.wbccp-settings-hero {
+		flex-direction: column;
+	}
+
+	.wbccp-settings-form .form-table th,
+	.wbccp-settings-form .form-table td {
+		display: block;
+		width: 100%;
+		padding-left: 0;
+		padding-right: 0;
+	}
+}

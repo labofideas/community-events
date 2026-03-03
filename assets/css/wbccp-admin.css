@@ -28,6 +28,8 @@ body.wbccp-event-editor #wpcontent {
 .wbccp-event-header {
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
+	flex-wrap: wrap;
 	gap: 16px;
 	padding: 18px 20px;
 	margin: 16px 0 18px;
@@ -66,6 +68,19 @@ body.wbccp-event-editor #wpcontent {
 	color: #475569;
 }
 
+.wbccp-event-header__actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.wbccp-event-header__actions .button {
+	border-radius: 8px;
+	min-height: 34px;
+	display: inline-flex;
+	align-items: center;
+}
+
 .wbccp-admin-card {
 	background: var(--wbccp-card-bg);
 	border: 1px solid var(--wbccp-border);
@@ -88,6 +103,10 @@ body.wbccp-event-editor #wpcontent {
 @media (max-width: 900px) {
 	.wbccp-admin-grid {
 		grid-template-columns: 1fr;
+	}
+
+	.wbccp-event-header__actions {
+		width: 100%;
 	}
 }
 

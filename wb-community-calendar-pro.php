@@ -26,9 +26,22 @@ if ( ! defined( 'WBCCP_URL' ) ) {
 	define( 'WBCCP_URL', plugin_dir_url( __FILE__ ) );
 }
 
+if ( ! defined( 'WBCCP_BASENAME' ) ) {
+	define( 'WBCCP_BASENAME', plugin_basename( __FILE__ ) );
+}
+
 require_once WBCCP_PATH . 'includes/class-wbccp-plugin.php';
 
 register_activation_hook( __FILE__, array( 'WBCCP_Plugin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'WBCCP_Plugin', 'deactivate' ) );
 
 add_action( 'plugins_loaded', array( 'WBCCP_Plugin', 'init' ) );
+
+function wbccp_plugin_action_links( $links ) {
+	$settings_url = admin_url( 'options-general.php?page=wbccp-settings' );
+	$settings_link = '<a href="' . esc_url( $settings_url ) . '">' . esc_html__( 'Settings', 'wb-community-calendar-pro' ) . '</a>';
+	array_unshift( $links, $settings_link );
+	return $links;
+}
+
+add_filter( 'plugin_action_links_' . WBCCP_BASENAME, 'wbccp_plugin_action_links' );
