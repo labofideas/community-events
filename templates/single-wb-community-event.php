@@ -211,10 +211,10 @@ while ( have_posts() ) :
 								$wbccp_user_status
 									? sprintf(
 										/* translators: %s: RSVP status. */
-										__( 'Your status: %s', 'wb-community-calendar-pro' ),
+										__( 'Status: %s', 'wb-community-calendar-pro' ),
 										'cant' === $wbccp_user_status ? __( 'Cannot attend', 'wb-community-calendar-pro' ) : ucfirst( $wbccp_user_status )
 									)
-									: __( 'No RSVP yet', 'wb-community-calendar-pro' )
+									: __( 'No RSVP', 'wb-community-calendar-pro' )
 							);
 							?>
 						</span>

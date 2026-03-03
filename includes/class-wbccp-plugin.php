@@ -25,7 +25,7 @@ class WBCCP_Plugin {
 		WBCCP_REST::init();
 		WBCCP_Notifications::init();
 
-		if ( function_exists( 'buddypress' ) ) {
+		if ( self::is_social_platform_active() ) {
 			WBCCP_BP::init();
 			WBCCP_Activity::init();
 		}
@@ -37,6 +37,12 @@ class WBCCP_Plugin {
 
 	public static function load_textdomain() {
 		// Since WordPress 4.6, plugin text domains are loaded automatically.
+	}
+
+	public static function is_social_platform_active() {
+		return function_exists( 'buddypress' )
+			|| function_exists( 'bp_is_active' )
+			|| defined( 'BUDDYBOSS_PLATFORM_VERSION' );
 	}
 
 	public static function activate() {
@@ -85,11 +91,11 @@ class WBCCP_Plugin {
 				'ajaxUrl'  => admin_url( 'admin-ajax.php' ),
 				'nonce'    => wp_create_nonce( 'wbccp_rsvp_ajax' ),
 				'showViewerTime' => class_exists( 'WBCCP_Settings' ) ? (int) WBCCP_Settings::get_settings()['show_viewer_timezone'] : 0,
-				'messages' => array(
-					'success' => __( 'RSVP updated.', 'wb-community-calendar-pro' ),
-					'error'   => __( 'Unable to save RSVP right now.', 'wb-community-calendar-pro' ),
-					'login'   => __( 'Please log in to RSVP.', 'wb-community-calendar-pro' ),
-				),
+					'messages' => array(
+						'success' => __( 'RSVP updated.', 'wb-community-calendar-pro' ),
+						'error'   => __( 'Could not save RSVP. Please try again.', 'wb-community-calendar-pro' ),
+						'login'   => __( 'Please log in to RSVP.', 'wb-community-calendar-pro' ),
+					),
 			)
 		);
 	}

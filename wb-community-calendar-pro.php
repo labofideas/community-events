@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: WB Community Calendar Pro
- * Description: Lightweight BuddyPress-native community calendar with group events.
+ * Description: Lightweight BuddyPress/BuddyBoss community calendar with group events.
  * Version: 0.1.0
  * Author: WB
  * License: GPLv2 or later

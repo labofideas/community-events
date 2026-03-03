@@ -8,14 +8,14 @@ Stable tag: 0.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-A lightweight BuddyPress-native community calendar with group events and RSVP.
+A lightweight BuddyPress/BuddyBoss community calendar with group events and RSVP.
 
 == Description ==
-WB Community Calendar Pro adds a clean group events system to BuddyPress. Create events inside groups, show a global community calendar, and let members RSVP with simple statuses.
+WB Community Calendar Pro adds a clean group events system to BuddyPress/BuddyBoss. Create events inside groups, show a global community calendar, and let members RSVP with simple statuses.
 
 Key features:
 
-* Group events with BuddyPress group tab
+* Group events with BuddyPress/BuddyBoss group tab
 * Month and list calendar views
 * RSVP statuses (Attending / Maybe / Can’t)
 * Event details (start/end, timezone, location, meeting link)
@@ -53,8 +53,8 @@ REST endpoint:
 
 == Frequently Asked Questions ==
 
-= Does this require BuddyPress? =
-Yes. BuddyPress is required for group events.
+= Does this require BuddyPress or BuddyBoss? =
+Yes. BuddyPress or BuddyBoss Platform is required for group events.
 
 = Can group members create events? =
 Yes, this is enabled by default and can be changed in plugin settings. You can also enable moderation to approve member events.

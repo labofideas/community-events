@@ -498,10 +498,10 @@ class WBCCP_Settings {
 	public static function field_reminder_include_maybe() {
 		$settings = self::get_settings();
 		?>
-		<label>
-			<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[reminder_include_maybe]" value="1" <?php checked( 1, $settings['reminder_include_maybe'] ); ?> />
-			<?php esc_html_e( 'Send reminders to members who RSVP’d “Maybe”.', 'wb-community-calendar-pro' ); ?>
-		</label>
+			<label>
+				<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[reminder_include_maybe]" value="1" <?php checked( 1, $settings['reminder_include_maybe'] ); ?> />
+				<?php esc_html_e( 'Send reminders to members who replied "Maybe".', 'wb-community-calendar-pro' ); ?>
+			</label>
 		<?php
 	}
 
@@ -517,10 +517,10 @@ class WBCCP_Settings {
 					<div class="wbccp-settings-hero__copy">
 						<p class="wbccp-settings-kicker"><?php esc_html_e( 'WB Community Calendar Pro', 'wb-community-calendar-pro' ); ?></p>
 						<h1><?php esc_html_e( 'Settings', 'wb-community-calendar-pro' ); ?></h1>
-						<p><?php esc_html_e( 'Configure events, moderation, timezone behavior, and notification automation from one polished control center.', 'wb-community-calendar-pro' ); ?></p>
+						<p><?php esc_html_e( 'Manage event settings, moderation, timezones, and notifications in one place.', 'wb-community-calendar-pro' ); ?></p>
 					</div>
 					<div class="wbccp-settings-hero__actions">
-						<a class="button button-secondary" href="#wbccp-demo-card"><?php esc_html_e( 'Open Demo Tools', 'wb-community-calendar-pro' ); ?></a>
+						<a class="button button-secondary" href="#wbccp-demo-card"><?php esc_html_e( 'Demo Tools', 'wb-community-calendar-pro' ); ?></a>
 					</div>
 				</header>
 
@@ -558,9 +558,9 @@ class WBCCP_Settings {
 					<aside class="wbccp-settings-aside">
 						<section id="wbccp-demo-card" class="wbccp-settings-card">
 							<h2><?php esc_html_e( 'Demo Data', 'wb-community-calendar-pro' ); ?></h2>
-							<p><?php esc_html_e( 'Generate sample BuddyPress groups and events for testing. You can delete them anytime.', 'wb-community-calendar-pro' ); ?></p>
+							<p><?php esc_html_e( 'Create sample BuddyPress groups and events for testing. You can remove them anytime.', 'wb-community-calendar-pro' ); ?></p>
 							<p><strong><?php esc_html_e( 'Demo login:', 'wb-community-calendar-pro' ); ?></strong> eventmember</p>
-							<p class="description"><?php esc_html_e( 'A random password is generated when the demo account is created. Use “Lost your password?” to set a new one if needed.', 'wb-community-calendar-pro' ); ?></p>
+							<p class="description"><?php esc_html_e( 'A random password is generated for the demo account. Use "Lost your password?" if you need to reset it.', 'wb-community-calendar-pro' ); ?></p>
 							<?php
 							$action_url = admin_url( 'admin-post.php' );
 							?>

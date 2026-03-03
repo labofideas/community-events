@@ -139,10 +139,10 @@
 					return;
 				}
 				if (statusText) {
-					badge.textContent = 'Your status: ' + statusText;
+					badge.textContent = 'Status: ' + statusText;
 					badge.classList.remove('is-empty');
 				} else {
-					badge.textContent = 'No RSVP yet';
+					badge.textContent = 'No RSVP';
 					badge.classList.add('is-empty');
 				}
 			});
